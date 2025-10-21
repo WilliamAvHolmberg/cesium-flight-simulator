@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { HapticFeedback } from '../../../../shared/utils/haptics';
 
 interface ThrottleSliderProps {
   onChange: (throttlePercent: number) => void;
@@ -8,6 +9,7 @@ export function ThrottleSlider({ onChange }: ThrottleSliderProps) {
   const [throttle, setThrottle] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const lastHapticThrottle = useRef(0);
 
   const updateThrottle = (clientY: number) => {
     if (!sliderRef.current) return;
@@ -16,6 +18,12 @@ export function ThrottleSlider({ onChange }: ThrottleSliderProps) {
     const y = clientY - rect.top;
     const percent = Math.max(0, Math.min(100, 100 - (y / rect.height) * 100));
     
+    const throttleDiff = Math.abs(percent - lastHapticThrottle.current);
+    if (throttleDiff >= 10) {
+      HapticFeedback.light();
+      lastHapticThrottle.current = percent;
+    }
+    
     setThrottle(percent);
     onChange(percent);
   };
@@ -23,6 +31,7 @@ export function ThrottleSlider({ onChange }: ThrottleSliderProps) {
   const handleTouchStart = (e: React.TouchEvent) => {
     e.stopPropagation();
     setIsDragging(true);
+    HapticFeedback.medium();
     updateThrottle(e.touches[0].clientY);
   };
 

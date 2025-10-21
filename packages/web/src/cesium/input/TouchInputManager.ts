@@ -3,6 +3,23 @@ import { InputAction } from './InputManager';
 export interface TouchControlConfig {
   sensitivity: number;
   throttleZoneWidth: number;
+  enableHaptics: boolean;
+}
+
+class HapticFeedback {
+  private static isSupported = typeof navigator !== 'undefined' && 'vibrate' in navigator;
+
+  static light(): void {
+    if (this.isSupported) {
+      navigator.vibrate(10);
+    }
+  }
+
+  static medium(): void {
+    if (this.isSupported) {
+      navigator.vibrate(15);
+    }
+  }
 }
 
 export class TouchInputManager {
@@ -15,7 +32,8 @@ export class TouchInputManager {
   
   private config: TouchControlConfig = {
     sensitivity: 1.5,
-    throttleZoneWidth: 96
+    throttleZoneWidth: 96,
+    enableHaptics: true
   };
 
   private inputCallbacks = new Map<InputAction, (pressed: boolean) => void>();
@@ -51,6 +69,10 @@ export class TouchInputManager {
     this.isTouching = true;
     
     this.isThrottleTouch = this.isInThrottleZone(touch.clientX);
+    
+    if (!this.isThrottleTouch && this.config.enableHaptics) {
+      HapticFeedback.light();
+    }
   }
 
   private handleTouchMove(event: TouchEvent): void {
@@ -100,6 +122,9 @@ export class TouchInputManager {
     if (pressed && !wasPressed) {
       this.activeInputs.add(action);
       this.notifyCallback(action, true);
+      if (this.config.enableHaptics) {
+        HapticFeedback.light();
+      }
     } else if (!pressed && wasPressed) {
       this.activeInputs.delete(action);
       this.notifyCallback(action, false);
