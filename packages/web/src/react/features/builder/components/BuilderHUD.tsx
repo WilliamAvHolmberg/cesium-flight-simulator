@@ -13,7 +13,7 @@ export function BuilderHUD() {
             </div>
           </div>
           <div className="text-[10px] text-white/30 border-t border-white/5 pt-2">
-            Left-click to place waypoint • Right-drag to pan • Scroll to zoom • Middle-drag to look around
+            WASD to move cursor • ↑↓ for altitude • <kbd className="px-1 py-0.5 bg-white/5 rounded text-white/50">Space</kbd> to spawn • Mouse to look around
           </div>
         </div>
       </div>

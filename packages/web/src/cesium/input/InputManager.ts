@@ -26,6 +26,7 @@ export interface InputState {
   switchCamera: boolean;
   toggleCollision: boolean;
   toggleBuilder: boolean;
+  spawnObject: boolean;
 
   // Aircraft specific
   altitudeUp: boolean;
@@ -65,6 +66,9 @@ export class InputManager {
     'KeyC': 'switchCamera',
     'KeyV': 'toggleCollision',
     'KeyB': 'toggleBuilder',
+    
+    // Builder mode
+    'Space': 'spawnObject',
 
     // Alternative altitude controls (for those who prefer PageUp/PageDown)
     'PageUp': 'altitudeUp',
@@ -93,13 +97,14 @@ export class InputManager {
     switchCamera: false,
     toggleCollision: false,
     toggleBuilder: false,
+    spawnObject: false,
     altitudeUp: false,
     altitudeDown: false,
     restart: false
   };
 
   private listeners: Map<InputAction, Array<(pressed: boolean) => void>> = new Map();
-  private oneTimeActions: Set<InputAction> = new Set(['toggleRoverMode', 'switchCamera', 'toggleCollision', 'toggleBuilder', 'restart']);
+  private oneTimeActions: Set<InputAction> = new Set(['toggleRoverMode', 'switchCamera', 'toggleCollision', 'toggleBuilder', 'spawnObject', 'restart']);
 
   constructor() {
     this.setupEventListeners();

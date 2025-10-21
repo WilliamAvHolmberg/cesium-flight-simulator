@@ -20,10 +20,10 @@ export const MODE_CONTROLS: ControlItem[] = [
 ];
 
 export const BUILDER_CONTROLS: ControlItem[] = [
-  { keys: ['Left Click'], description: 'Place Object' },
-  { keys: ['Left Drag'], description: 'Rotate View' },
-  { keys: ['Right Drag'], description: 'Pan Camera' },
-  { keys: ['Middle Drag'], description: 'Look Around' },
+  { keys: ['W', 'A', 'S', 'D'], description: 'Move Spawn Cursor' },
+  { keys: ['↑', '↓'], description: 'Cursor Up/Down' },
+  { keys: ['Space'], description: 'Spawn Object' },
+  { keys: ['Mouse Drag'], description: 'Look Around' },
   { keys: ['Scroll'], description: 'Zoom In/Out' },
   { keys: ['B'], description: 'Exit Builder Mode' },
 ];

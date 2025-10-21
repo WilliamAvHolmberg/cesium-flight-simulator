@@ -32,6 +32,11 @@ export class CesiumVehicleGame {
   private setupSystems(): void {
     this.gameLoop.addUpdatable(this.vehicleManager);
     this.gameLoop.addUpdatable(this.cameraManager);
+    this.gameLoop.addUpdatable({
+      update: (deltaTime: number) => {
+        this.placementController.update(deltaTime);
+      }
+    });
     
     this.vehicleManager.onVehicleChange((vehicle) => {
       this.cameraManager.setTarget(vehicle);
@@ -42,6 +47,21 @@ export class CesiumVehicleGame {
   private setupInputHandling(): void {
     this.vehicleManager.setupInputHandling(this.inputManager);
     this.cameraManager.setupInputHandling(this.inputManager);
+    
+    // Builder placement inputs
+    this.inputManager.onInput('throttle', (pressed) => this.placementController.setMoveInput({ forward: pressed }));
+    this.inputManager.onInput('brake', (pressed) => this.placementController.setMoveInput({ backward: pressed }));
+    this.inputManager.onInput('turnLeft', (pressed) => this.placementController.setMoveInput({ left: pressed }));
+    this.inputManager.onInput('turnRight', (pressed) => this.placementController.setMoveInput({ right: pressed }));
+    this.inputManager.onInput('altitudeUp', (pressed) => this.placementController.setMoveInput({ up: pressed }));
+    this.inputManager.onInput('altitudeDown', (pressed) => this.placementController.setMoveInput({ down: pressed }));
+    
+    // Space bar to spawn object
+    this.inputManager.onInput('spawnObject', (pressed) => {
+      if (pressed) {
+        this.placementController.placeObjectAtCursor();
+      }
+    });
   }
 
   public async startCinematicSequence(): Promise<void> {

@@ -1,6 +1,7 @@
 import * as Cesium from 'cesium';
 import { ObjectManager } from './ObjectManager';
 import { GameObjectType } from '../objects/GameObject';
+import { BuilderCursor } from './BuilderCursor';
 
 export class PlacementController {
   private viewer: Cesium.Viewer;
@@ -8,31 +9,34 @@ export class PlacementController {
   private isEnabled: boolean = false;
   private currentObjectType: GameObjectType = 'waypoint';
   
-  private cursorEntity: Cesium.Entity | null = null;
+  private builderCursor: BuilderCursor | null = null;
   private handler: Cesium.ScreenSpaceEventHandler | null = null;
-  private lastMousePosition: Cesium.Cartesian2 | null = null;
 
   constructor(viewer: Cesium.Viewer, objectManager: ObjectManager) {
     this.viewer = viewer;
     this.objectManager = objectManager;
   }
 
-  public enable(): void {
+  public enable(startPosition: Cesium.Cartesian3): void {
     if (this.isEnabled) return;
     
     this.isEnabled = true;
-    this.createCursor();
+    this.builderCursor = new BuilderCursor(this.viewer, startPosition);
     this.setupEventHandlers();
     
-    console.log('🎯 Placement mode enabled - click to place objects');
+    console.log('🎯 Placement mode enabled - WASD to move, Space to place');
   }
 
   public disable(): void {
     if (!this.isEnabled) return;
     
     this.isEnabled = false;
-    this.lastMousePosition = null;
-    this.removeCursor();
+    
+    if (this.builderCursor) {
+      this.builderCursor.destroy();
+      this.builderCursor = null;
+    }
+    
     this.removeEventHandlers();
     
     console.log('🎯 Placement mode disabled');
@@ -40,6 +44,9 @@ export class PlacementController {
 
   public setObjectType(type: GameObjectType): void {
     this.currentObjectType = type;
+    if (this.builderCursor) {
+      this.builderCursor.updateGhostPreview(this.capitalizeObjectType(type));
+    }
     console.log(`📦 Selected object type: ${type}`);
   }
 
@@ -47,43 +54,13 @@ export class PlacementController {
     return this.currentObjectType;
   }
 
-  private createCursor(): void {
-    this.cursorEntity = this.viewer.entities.add({
-      position: new Cesium.CallbackPositionProperty(() => {
-        return this.getCursorPosition();
-      }, false),
-      point: {
-        pixelSize: 15,
-        color: Cesium.Color.YELLOW.withAlpha(0.8),
-        outlineColor: Cesium.Color.WHITE,
-        outlineWidth: 2,
-        disableDepthTestDistance: Number.POSITIVE_INFINITY,
-      },
-    });
-  }
-
-  private removeCursor(): void {
-    if (this.cursorEntity) {
-      this.viewer.entities.remove(this.cursorEntity);
-      this.cursorEntity = null;
-    }
+  private capitalizeObjectType(type: GameObjectType): string {
+    return type.charAt(0).toUpperCase() + type.slice(1);
   }
 
   private setupEventHandlers(): void {
-    this.handler = new Cesium.ScreenSpaceEventHandler(this.viewer.scene.canvas);
-
-    // Track mouse movement
-    this.handler.setInputAction((movement: Cesium.ScreenSpaceEventHandler.MotionEvent) => {
-      this.lastMousePosition = movement.endPosition;
-    }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
-
-    // Left click to place object
-    this.handler.setInputAction((click: Cesium.ScreenSpaceEventHandler.PositionedEvent) => {
-      const position = this.pickPosition(click.position);
-      if (position) {
-        this.objectManager.placeObject(this.currentObjectType, position);
-      }
-    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    // Space bar to place object (handled externally via InputManager)
+    // We'll expose a method for this
   }
 
   private removeEventHandlers(): void {
@@ -93,35 +70,23 @@ export class PlacementController {
     }
   }
 
-  private pickPosition(screenPosition: Cesium.Cartesian2): Cesium.Cartesian3 | null {
-    // Try to pick terrain/tileset first
-    const pickedObject = this.viewer.scene.pick(screenPosition);
+  public placeObjectAtCursor(): void {
+    if (!this.builderCursor) return;
     
-    if (Cesium.defined(pickedObject)) {
-      // Pick exact position on 3D tiles or terrain
-      const cartesian = this.viewer.scene.pickPosition(screenPosition);
-      if (Cesium.defined(cartesian)) {
-        return cartesian;
-      }
-    }
-
-    // Fallback: pick position on globe ellipsoid
-    const ray = this.viewer.camera.getPickRay(screenPosition);
-    if (ray) {
-      const position = this.viewer.scene.globe.pick(ray, this.viewer.scene);
-      if (position) {
-        return position;
-      }
-    }
-
-    return null;
+    const position = this.builderCursor.getPosition();
+    this.objectManager.placeObject(this.currentObjectType, position);
   }
 
-  private getCursorPosition(): Cesium.Cartesian3 | undefined {
-    if (!this.lastMousePosition) return undefined;
+  public update(deltaTime: number): void {
+    if (this.builderCursor) {
+      this.builderCursor.update(deltaTime);
+    }
+  }
 
-    const position = this.pickPosition(this.lastMousePosition);
-    return position || undefined;
+  public setMoveInput(input: { forward?: boolean; backward?: boolean; left?: boolean; right?: boolean; up?: boolean; down?: boolean; fast?: boolean }): void {
+    if (this.builderCursor) {
+      this.builderCursor.setMoveInput(input);
+    }
   }
 
   public isActive(): boolean {

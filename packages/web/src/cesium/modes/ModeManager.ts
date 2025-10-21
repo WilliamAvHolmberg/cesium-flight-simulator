@@ -42,10 +42,11 @@ export class ModeManager {
     // Enable Cesium's built-in free camera controls
     scene.enableDefaultCameraControls(true);
     
-    // Enable object placement
-    placementController.enable();
+    // Enable object placement at vehicle position
+    const startPosition = vehicle ? vehicle.getPosition() : scene.camera.positionWC;
+    placementController.enable(startPosition);
     
-    console.log('✅ Builder mode active - Cesium free camera + placement enabled');
+    console.log('✅ Builder mode active - WASD to move cursor, Space to spawn');
   }
 
   private exitBuilderMode(): void {
