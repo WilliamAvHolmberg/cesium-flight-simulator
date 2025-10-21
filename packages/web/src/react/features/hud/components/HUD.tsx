@@ -1,6 +1,5 @@
 import { Panel } from '../../../shared/components/Panel';
 import { Speedometer } from './Speedometer';
-import { ModeIndicator } from './ModeIndicator';
 
 export function HUD() {
   return (
@@ -8,7 +7,6 @@ export function HUD() {
       <Panel variant="minimal">
         <Speedometer />
       </Panel>
-      <ModeIndicator />
     </div>
   );
 }

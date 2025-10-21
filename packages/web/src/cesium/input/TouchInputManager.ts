@@ -15,7 +15,7 @@ export class TouchInputManager {
   
   private config: TouchControlConfig = {
     sensitivity: 1.5,
-    throttleZoneWidth: 80
+    throttleZoneWidth: 96
   };
 
   private inputCallbacks = new Map<InputAction, (pressed: boolean) => void>();

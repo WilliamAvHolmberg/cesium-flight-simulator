@@ -51,13 +51,13 @@ export function ThrottleSlider({ onChange }: ThrottleSliderProps) {
   return (
     <div
       ref={sliderRef}
-      className="fixed right-0 top-0 h-full w-20 flex items-center justify-center z-40"
+      className="fixed right-0 top-0 h-full w-24 flex items-center justify-center z-40"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       style={{ touchAction: 'none' }}
     >
-      <div className="relative h-[70vh] w-2 bg-white/10 rounded-full overflow-hidden">
+      <div className="relative h-[50vh] w-2 bg-white/10 rounded-full overflow-hidden">
         <div
           className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-400 to-yellow-400 rounded-full transition-all duration-75"
           style={{ height: `${throttle}%` }}
