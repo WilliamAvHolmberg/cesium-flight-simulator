@@ -29,6 +29,7 @@ export abstract class Vehicle implements Updatable {
   protected isReady: boolean = false;
   protected sceneRef: Cesium.Scene | null = null;
   protected modelHeadingOffset: number = 0;
+  public physicsEnabled: boolean = true;
 
   public readonly id: string;
   public readonly config: VehicleConfig;

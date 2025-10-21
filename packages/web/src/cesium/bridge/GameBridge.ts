@@ -7,15 +7,18 @@ import type { QualityConfig } from '../core/Scene';
 import { Car } from '../vehicles/car/Car';
 import { Aircraft } from '../vehicles/aircraft/Aircraft';
 import type { Vehicle } from '../vehicles/Vehicle';
+import { ModeManager } from '../modes/ModeManager';
 
 export class GameBridge extends TypedEventEmitter<GameEvents> {
   private game: CesiumVehicleGame;
   private updateInterval: number | null = null;
   private currentMode: GameMode = 'play';
+  private modeManager: ModeManager;
 
   constructor(game: CesiumVehicleGame) {
     super();
     this.game = game;
+    this.modeManager = new ModeManager(game);
     this.startUpdates();
     this.setupVehicleChangeListener();
     this.setupBuilderModeListener();
@@ -219,6 +222,8 @@ export class GameBridge extends TypedEventEmitter<GameEvents> {
     
     const previousMode = this.currentMode;
     this.currentMode = mode;
+    
+    this.modeManager.onModeChanged(previousMode, mode);
     
     this.emit('modeChanged', { mode, previousMode });
     
