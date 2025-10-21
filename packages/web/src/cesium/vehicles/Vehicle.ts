@@ -84,7 +84,7 @@ export abstract class Vehicle implements Updatable {
 
   public abstract update(deltaTime: number): void;
 
-  public setInput(_input: Record<string, boolean>): void {
+  public setInput(_input: Record<string, boolean | number | undefined>): void {
     // Override in subclasses
   }
 
