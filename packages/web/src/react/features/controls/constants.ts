@@ -15,7 +15,8 @@ export const CAMERA_CONTROLS: ControlItem[] = [
 
 export const MODE_CONTROLS: ControlItem[] = [
   { keys: ['M'], description: 'Toggle Rover/Aircraft' },
-  { keys: ['B'], description: 'Toggle Collision' },
+  { keys: ['V'], description: 'Toggle Collision' },
+  { keys: ['B'], description: 'Toggle Builder Mode' },
 ];
 
 

@@ -1,25 +1,27 @@
-import { HUD } from './features/hud/components/HUD';
-import { ControlsPanel } from './features/controls/components/ControlsPanel';
-import { CameraControls } from './features/camera/components/CameraControls';
-import { DebugPanel } from './features/debug/components/DebugPanel';
-import { LocationSelector } from './features/location/components/LocationSelector';
-import { CrashScreen } from './features/crash/components/CrashScreen';
 import { IntroScreen } from './shared/components/IntroScreen';
-import { MiniMap } from './features/minimap/components/MiniMap';
+import { DebugPanel } from './features/debug/components/DebugPanel';
+import { PlayModeUI } from './layouts/PlayModeUI';
+import { BuilderModeUI } from './layouts/BuilderModeUI';
+import { ModeToggle } from './features/builder/components/ModeToggle';
+import { useGameMode } from './hooks/useGameMode';
 
 export function App() {
+  const { mode } = useGameMode();
+
   return (
     <>
+      {/* Global UI - always visible */}
       <IntroScreen />
-      <ControlsPanel />
-      <div className="fixed top-8 right-8 z-50 flex gap-2 pointer-events-auto">
-        <LocationSelector />
-        <CameraControls />
-      </div>
-      <HUD />
       <DebugPanel />
-      <MiniMap />
-      <CrashScreen />
+      
+      {/* Mode toggle button (temporary for testing) */}
+      <div className="fixed bottom-4 right-4 z-50 pointer-events-auto">
+        <ModeToggle />
+      </div>
+      
+      {/* Mode-specific UI */}
+      {mode === 'play' && <PlayModeUI />}
+      {mode === 'builder' && <BuilderModeUI />}
     </>
   );
 }

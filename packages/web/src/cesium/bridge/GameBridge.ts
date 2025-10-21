@@ -18,8 +18,17 @@ export class GameBridge extends TypedEventEmitter<GameEvents> {
     this.game = game;
     this.startUpdates();
     this.setupVehicleChangeListener();
+    this.setupBuilderModeListener();
     this.applyQualityPreset('performance');
     console.log('🎮 Applied performance mode on startup');
+  }
+
+  private setupBuilderModeListener(): void {
+    this.game.getInputManager().onInput('toggleBuilder', (pressed) => {
+      if (pressed) {
+        this.toggleBuilderMode();
+      }
+    });
   }
 
   private setupVehicleChangeListener(): void {
