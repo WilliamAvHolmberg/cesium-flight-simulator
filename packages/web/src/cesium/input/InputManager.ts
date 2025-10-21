@@ -26,9 +26,6 @@ export interface InputState {
   switchCamera: boolean;
   toggleCollision: boolean;
   toggleBuilder: boolean;
-  
-  // Modifiers
-  fast: boolean;
 
   // Aircraft specific
   altitudeUp: boolean;
@@ -98,8 +95,7 @@ export class InputManager {
     toggleBuilder: false,
     altitudeUp: false,
     altitudeDown: false,
-    restart: false,
-    fast: false
+    restart: false
   };
 
   private listeners: Map<InputAction, Array<(pressed: boolean) => void>> = new Map();
@@ -118,11 +114,6 @@ export class InputManager {
   }
 
   private handleKeyDown(event: KeyboardEvent): void {
-    // Handle shift modifier
-    if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
-      this.setInputState('fast', true);
-    }
-    
     const action = this.keyBindings[event.code] as InputAction;
     if (!action) return;
 
@@ -144,11 +135,6 @@ export class InputManager {
   }
 
   private handleKeyUp(event: KeyboardEvent): void {
-    // Handle shift modifier
-    if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
-      this.setInputState('fast', false);
-    }
-    
     const action = this.keyBindings[event.code] as InputAction;
     if (!action || this.oneTimeActions.has(action)) return;
 

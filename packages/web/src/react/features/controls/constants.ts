@@ -20,12 +20,11 @@ export const MODE_CONTROLS: ControlItem[] = [
 ];
 
 export const BUILDER_CONTROLS: ControlItem[] = [
-  { keys: ['Click'], description: 'Lock/Unlock Mouse Look' },
-  { keys: ['Mouse'], description: 'Look Around' },
-  { keys: ['W', 'A', 'S', 'D'], description: 'Move' },
-  { keys: ['Space', 'Ctrl'], description: 'Up / Down' },
-  { keys: ['Shift'], description: 'Fast Movement' },
-  { keys: ['ESC'], description: 'Unlock Mouse' },
+  { keys: ['Left Drag'], description: 'Rotate View' },
+  { keys: ['Right Drag'], description: 'Pan Camera' },
+  { keys: ['Middle Drag'], description: 'Look Around' },
+  { keys: ['Scroll'], description: 'Zoom In/Out' },
+  { keys: ['B'], description: 'Exit Builder Mode' },
 ];
 
 

@@ -22,31 +22,46 @@ export class ModeManager {
   private enterBuilderMode(): void {
     console.log('🏗️ Entering builder mode...');
     
-    const cameraManager = this.game.getCameraManager();
+    const scene = this.game.getScene();
     const vehicleManager = this.game.getVehicleManager();
+    const cameraManager = this.game.getCameraManager();
     
-    cameraManager.setActiveCamera('free');
-    
+    // Disable vehicle physics
     const vehicle = vehicleManager.getActiveVehicle();
     if (vehicle) {
       (vehicle as any).physicsEnabled = false;
     }
     
-    console.log('✅ Builder mode active - free camera enabled');
+    // Disable our custom cameras
+    const activeCamera = cameraManager.getActiveCamera();
+    if (activeCamera) {
+      activeCamera.deactivate();
+    }
+    
+    // Enable Cesium's built-in free camera controls
+    scene.enableDefaultCameraControls(true);
+    
+    console.log('✅ Builder mode active - Cesium free camera enabled');
   }
 
   private exitBuilderMode(): void {
     console.log('🎮 Exiting builder mode...');
     
-    const cameraManager = this.game.getCameraManager();
+    const scene = this.game.getScene();
     const vehicleManager = this.game.getVehicleManager();
+    const cameraManager = this.game.getCameraManager();
     
-    cameraManager.setActiveCamera('follow');
-    
+    // Re-enable vehicle physics
     const vehicle = vehicleManager.getActiveVehicle();
     if (vehicle) {
       (vehicle as any).physicsEnabled = true;
     }
+    
+    // Disable Cesium's default camera controls
+    scene.enableDefaultCameraControls(false);
+    
+    // Re-enable our custom follow camera
+    cameraManager.setActiveCamera('follow');
     
     console.log('✅ Play mode active - follow camera enabled');
   }

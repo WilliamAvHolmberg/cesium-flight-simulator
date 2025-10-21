@@ -13,7 +13,7 @@ export function BuilderHUD() {
             </div>
           </div>
           <div className="text-[10px] text-white/30 border-t border-white/5 pt-2">
-            Click canvas for mouse look • WASD to move • Space/Ctrl for up/down • Shift = fast • ESC to unlock mouse
+            Left-drag to rotate • Right-drag to pan • Scroll to zoom • Middle-drag to look around
           </div>
         </div>
       </div>
