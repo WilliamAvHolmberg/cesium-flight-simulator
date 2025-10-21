@@ -1,3 +1,4 @@
+import * as Cesium from 'cesium';
 import type { CesiumVehicleGame } from '../bootstrap/main';
 import type { GameMode } from '../bridge/types';
 
@@ -33,20 +34,44 @@ export class ModeManager {
       (vehicle as any).physicsEnabled = false;
     }
     
-    // Disable our custom cameras
+    // Disable our custom cameras FIRST
     const activeCamera = cameraManager.getActiveCamera();
     if (activeCamera) {
       activeCamera.deactivate();
     }
     
+    // Position camera behind and above the vehicle/cursor spawn point
+    const startPosition = vehicle ? vehicle.getPosition() : scene.camera.positionWC;
+    const cartographic = Cesium.Cartographic.fromCartesian(startPosition);
+    
+    // Position camera 100m behind and 50m above
+    const cameraCartographic = new Cesium.Cartographic(
+      cartographic.longitude,
+      cartographic.latitude - Cesium.Math.toRadians(0.001), // ~100m south
+      cartographic.height + 50
+    );
+    const cameraPosition = Cesium.Cartographic.toCartesian(cameraCartographic);
+    
+    // Point camera at the spawn position
+    const heading = 0; // North
+    const pitch = Cesium.Math.toRadians(-20); // Looking down slightly
+    
+    scene.camera.setView({
+      destination: cameraPosition,
+      orientation: {
+        heading: heading,
+        pitch: pitch,
+        roll: 0
+      }
+    });
+    
     // Enable Cesium's built-in free camera controls
     scene.enableDefaultCameraControls(true);
     
     // Enable object placement at vehicle position
-    const startPosition = vehicle ? vehicle.getPosition() : scene.camera.positionWC;
     placementController.enable(startPosition);
     
-    console.log('✅ Builder mode active - WASD to move cursor, Space to spawn');
+    console.log('✅ Builder mode active - Camera unlocked, WASD to move cursor, Space to spawn');
   }
 
   private exitBuilderMode(): void {
