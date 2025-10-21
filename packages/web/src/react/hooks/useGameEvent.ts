@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useGameBridge } from './useGameBridge';
 import type { GameEvents } from '../../cesium/bridge/types';
 import { throttle } from '../shared/utils/throttle';
@@ -13,17 +13,30 @@ export function useGameEvent<K extends keyof GameEvents>(
 ): GameEvents[K] | null {
   const bridge = useGameBridge();
   const [data, setData] = useState<GameEvents[K] | null>(null);
-  const throttledSetData = useRef(
-    options?.throttle ? throttle(setData, options.throttle) : setData
+
+  // Store setData in a ref to avoid recreating throttled function when setData changes
+  const setDataRef = useRef(setData);
+  setDataRef.current = setData;
+
+  // Memoize the throttled setter - only recreate when throttle delay changes
+  const throttledSetData = useCallback(
+    options?.throttle
+      ? throttle((eventData: GameEvents[K]) => {
+          setDataRef.current(eventData);
+        }, options.throttle)
+      : (eventData: GameEvents[K]) => {
+          setDataRef.current(eventData);
+        },
+    [options?.throttle]
   );
 
   useEffect(() => {
     const unsubscribe = bridge.on(event, (eventData) => {
-      throttledSetData.current(eventData as GameEvents[K]);
+      throttledSetData(eventData as GameEvents[K]);
     });
 
     return unsubscribe;
-  }, [bridge, event]);
+  }, [bridge, event, throttledSetData]);
 
   return data;
 }
@@ -34,23 +47,31 @@ export function useGameEventCallback<K extends keyof GameEvents>(
   options?: UseGameEventOptions
 ): void {
   const bridge = useGameBridge();
-  const throttledCallback = useRef(
-    options?.throttle ? throttle(callback, options.throttle) : callback
+
+  // Store callback in a ref to always reference the latest callback
+  // This prevents recreating the throttled function when callback changes
+  const callbackRef = useRef(callback);
+  callbackRef.current = callback;
+
+  // Memoize the throttled callback - only recreate when throttle delay changes
+  const throttledCallback = useCallback(
+    options?.throttle
+      ? throttle((eventData: GameEvents[K]) => {
+          callbackRef.current(eventData);
+        }, options.throttle)
+      : (eventData: GameEvents[K]) => {
+          callbackRef.current(eventData);
+        },
+    [options?.throttle]
   );
 
   useEffect(() => {
-    throttledCallback.current = options?.throttle
-      ? throttle(callback, options.throttle)
-      : callback;
-  }, [callback, options?.throttle]);
-
-  useEffect(() => {
     const unsubscribe = bridge.on(event, (eventData) => {
-      throttledCallback.current(eventData as GameEvents[K]);
+      throttledCallback(eventData as GameEvents[K]);
     });
 
     return unsubscribe;
-  }, [bridge, event]);
+  }, [bridge, event, throttledCallback]);
 }
 
 
