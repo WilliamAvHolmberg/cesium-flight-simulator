@@ -80,6 +80,15 @@ export class AircraftPhysics {
     const targetRoll = rollInput * this.config.maxRoll;
     this.roll = Cesium.Math.lerp(this.roll, targetRoll, 0.15);
 
+    let turnInput = 0;
+    if (input.turnLeft || input.rollLeft) turnInput -= 1;
+    if (input.turnRight || input.rollRight) turnInput += 1;
+
+    const rollTurnFactor = this.roll / this.config.maxRoll;
+    const totalTurnInput = turnInput + rollTurnFactor;
+
+    this.heading = Cesium.Math.zeroToTwoPi(this.heading + totalTurnInput * this.config.turnRate * deltaTime);
+
     let climbInput = 0;
     if (input.altitudeUp) climbInput += 1;
     if (input.altitudeDown) climbInput -= 1;
@@ -98,8 +107,8 @@ export class AircraftPhysics {
 
     const forwardStep = this.currentSpeed * deltaTime;
     const positionDelta = Cesium.Cartesian3.multiplyByScalar(
-      AircraftPhysics.scratchLocalForward, 
-      forwardStep, 
+      AircraftPhysics.scratchLocalForward,
+      forwardStep,
       AircraftPhysics.scratchPositionDelta
     );
 
