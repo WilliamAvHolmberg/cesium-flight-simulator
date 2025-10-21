@@ -1,6 +1,6 @@
 import * as Cesium from 'cesium';
 import { TypedEventEmitter } from './TypedEventEmitter';
-import type { GameEvents, VehicleStateData } from './types';
+import type { GameEvents, VehicleStateData, GameMode } from './types';
 import type { CesiumVehicleGame } from '../bootstrap/main';
 import type { CameraType } from '../managers/CameraManager';
 import type { QualityConfig } from '../core/Scene';
@@ -11,6 +11,7 @@ import type { Vehicle } from '../vehicles/Vehicle';
 export class GameBridge extends TypedEventEmitter<GameEvents> {
   private game: CesiumVehicleGame;
   private updateInterval: number | null = null;
+  private currentMode: GameMode = 'play';
 
   constructor(game: CesiumVehicleGame) {
     super();
@@ -194,6 +195,29 @@ export class GameBridge extends TypedEventEmitter<GameEvents> {
 
   public updateQualitySettings(config: Partial<QualityConfig>): void {
     this.game.getScene().updateQualityConfig(config);
+  }
+
+  public toggleBuilderMode(): void {
+    const newMode: GameMode = this.currentMode === 'play' ? 'builder' : 'play';
+    this.setMode(newMode);
+  }
+
+  public setMode(mode: GameMode): void {
+    if (this.currentMode === mode) {
+      console.log(`🎮 Already in ${mode} mode`);
+      return;
+    }
+    
+    const previousMode = this.currentMode;
+    this.currentMode = mode;
+    
+    this.emit('modeChanged', { mode, previousMode });
+    
+    console.log(`🎮 Mode changed: ${previousMode} → ${mode}`);
+  }
+
+  public getMode(): GameMode {
+    return this.currentMode;
   }
 
   public applyQualityPreset(preset: 'performance' | 'balanced' | 'quality' | 'ultra'): void {

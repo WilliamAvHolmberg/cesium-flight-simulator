@@ -1,6 +1,8 @@
 import * as Cesium from 'cesium';
 import type { CameraType } from '../managers/CameraManager';
 
+export type GameMode = 'play' | 'builder';
+
 export interface VehicleStateData {
   speed: number;
   velocity: number;
@@ -49,6 +51,11 @@ export interface CrashData {
   crashed: boolean;
 }
 
+export interface ModeChangedData {
+  mode: GameMode;
+  previousMode: GameMode;
+}
+
 export interface GameEvents {
   gameReady: GameReadyData;
   vehicleStateChanged: VehicleStateData;
@@ -58,6 +65,7 @@ export interface GameEvents {
   playersUpdated: PlayersData;
   locationChanged: LocationChangedData;
   crashed: CrashData;
+  modeChanged: ModeChangedData;
   [key: string]: unknown;
 }
 
