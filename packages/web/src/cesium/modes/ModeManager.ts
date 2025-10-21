@@ -25,6 +25,7 @@ export class ModeManager {
     const scene = this.game.getScene();
     const vehicleManager = this.game.getVehicleManager();
     const cameraManager = this.game.getCameraManager();
+    const placementController = this.game.getPlacementController();
     
     // Disable vehicle physics
     const vehicle = vehicleManager.getActiveVehicle();
@@ -41,7 +42,10 @@ export class ModeManager {
     // Enable Cesium's built-in free camera controls
     scene.enableDefaultCameraControls(true);
     
-    console.log('✅ Builder mode active - Cesium free camera enabled');
+    // Enable object placement
+    placementController.enable();
+    
+    console.log('✅ Builder mode active - Cesium free camera + placement enabled');
   }
 
   private exitBuilderMode(): void {
@@ -50,6 +54,10 @@ export class ModeManager {
     const scene = this.game.getScene();
     const vehicleManager = this.game.getVehicleManager();
     const cameraManager = this.game.getCameraManager();
+    const placementController = this.game.getPlacementController();
+    
+    // Disable object placement
+    placementController.disable();
     
     // Re-enable vehicle physics
     const vehicle = vehicleManager.getActiveVehicle();

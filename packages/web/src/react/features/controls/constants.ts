@@ -20,6 +20,7 @@ export const MODE_CONTROLS: ControlItem[] = [
 ];
 
 export const BUILDER_CONTROLS: ControlItem[] = [
+  { keys: ['Left Click'], description: 'Place Object' },
   { keys: ['Left Drag'], description: 'Rotate View' },
   { keys: ['Right Drag'], description: 'Pan Camera' },
   { keys: ['Middle Drag'], description: 'Look Around' },

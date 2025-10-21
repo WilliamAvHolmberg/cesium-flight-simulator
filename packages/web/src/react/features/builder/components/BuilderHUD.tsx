@@ -6,14 +6,14 @@ export function BuilderHUD() {
           <div className="flex items-center gap-3">
             <div className="w-1.5 h-1.5 rounded-full bg-future-warning animate-pulse-subtle" />
             <span className="text-xs font-medium text-white/80 tracking-wide">
-              Builder Mode
+              Builder Mode - Placing: Waypoints
             </span>
             <div className="text-[10px] text-white/40 ml-1">
               Press <kbd className="px-1 py-0.5 bg-white/5 rounded text-white/50">B</kbd> to exit
             </div>
           </div>
           <div className="text-[10px] text-white/30 border-t border-white/5 pt-2">
-            Left-drag to rotate • Right-drag to pan • Scroll to zoom • Middle-drag to look around
+            Left-click to place waypoint • Right-drag to pan • Scroll to zoom • Middle-drag to look around
           </div>
         </div>
       </div>

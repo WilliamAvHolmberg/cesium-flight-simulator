@@ -4,6 +4,8 @@ import { GameLoop } from '../core/GameLoop';
 import { VehicleManager } from '../managers/VehicleManager';
 import { CameraManager } from '../managers/CameraManager';
 import { InputManager } from '../input/InputManager';
+import { ObjectManager } from '../builder/ObjectManager';
+import { PlacementController } from '../builder/PlacementController';
 
 export class CesiumVehicleGame {
   private scene: Scene;
@@ -11,6 +13,8 @@ export class CesiumVehicleGame {
   private vehicleManager: VehicleManager;
   private cameraManager: CameraManager;
   private inputManager: InputManager;
+  private objectManager: ObjectManager;
+  private placementController: PlacementController;
 
   constructor(containerId: string = "cesiumContainer") {
     this.scene = new Scene(containerId);
@@ -18,6 +22,8 @@ export class CesiumVehicleGame {
     this.vehicleManager = new VehicleManager(this.scene);
     this.cameraManager = new CameraManager(this.scene.camera);
     this.inputManager = new InputManager();
+    this.objectManager = new ObjectManager(this.scene.viewer);
+    this.placementController = new PlacementController(this.scene.viewer, this.objectManager);
 
     this.setupSystems();
     this.setupInputHandling();
@@ -84,6 +90,14 @@ export class CesiumVehicleGame {
 
   public getScene(): Scene {
     return this.scene;
+  }
+
+  public getObjectManager(): ObjectManager {
+    return this.objectManager;
+  }
+
+  public getPlacementController(): PlacementController {
+    return this.placementController;
   }
 
   public destroy(): void {
