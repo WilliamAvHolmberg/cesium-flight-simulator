@@ -34,7 +34,14 @@ export class Scene {
       baseLayerPicker: false,
       geocoder: false,
       shadows: false,
-      msaaSamples: 4
+      msaaSamples: 4,
+      homeButton: false,
+      sceneModePicker: false,
+      navigationHelpButton: false,
+      fullscreenButton: false,
+      vrButton: false,
+      infoBox: false,
+      selectionIndicator: false
     });
 
     this.scene = this.viewer.scene;

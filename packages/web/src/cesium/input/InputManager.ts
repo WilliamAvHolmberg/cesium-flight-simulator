@@ -105,6 +105,7 @@ export class InputManager {
 
   private listeners: Map<InputAction, Array<(pressed: boolean) => void>> = new Map();
   private oneTimeActions: Set<InputAction> = new Set(['toggleRoverMode', 'switchCamera', 'toggleCollision', 'toggleBuilder', 'spawnObject', 'restart']);
+  private throttlePercent: number = 0;
 
   constructor() {
     this.setupEventListeners();
@@ -189,6 +190,18 @@ export class InputManager {
 
   public getKeyBindings(): Readonly<KeyBinding> {
     return this.keyBindings;
+  }
+
+  public setThrottlePercent(percent: number): void {
+    this.throttlePercent = Math.max(0, Math.min(100, percent));
+    
+    const shouldThrottle = this.throttlePercent > 0;
+    this.setInputState('throttle', shouldThrottle);
+    this.setInputState('brake', false);
+  }
+
+  public getThrottlePercent(): number {
+    return this.throttlePercent;
   }
 
   public destroy(): void {
