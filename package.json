@@ -1,0 +1,16 @@
+{
+  "name": "cesium-flight-simulator",
+  "version": "1.0.0",
+  "description": "A 3D flight simulator built with Cesium, React, and TypeScript. Fly aircraft or drive a car across real-world terrain with multiple camera modes and a mini-map.",
+  "main": "index.js",
+  "scripts": {
+    "deploy:web": "dotenv -e .env -- ./scripts/deploy-web.sh"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "dotenv-cli": "^7.4.2",
+    "wrangler": "^4.42.0"
+  }
+}
