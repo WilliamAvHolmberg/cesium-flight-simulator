@@ -51,6 +51,12 @@ export class Scene {
     this.viewer.scene.globe.show = false;
     this.scene.debugShowFramesPerSecond = true;
 
+    // Disable default camera controller (we use custom cameras in play mode)
+    this.viewer.scene.screenSpaceCameraController.enableRotate = false;
+    this.viewer.scene.screenSpaceCameraController.enableZoom = false;
+    this.viewer.scene.screenSpaceCameraController.enableLook = false;
+    this.viewer.scene.screenSpaceCameraController.enableTilt = false;
+
     // Mars-like atmosphere
     if (this.scene.skyAtmosphere) {
       // this.scene.skyAtmosphere.atmosphereMieCoefficient = new Cesium.Cartesian3(9.0e-5, 2.0e-5, 1.0e-5);
@@ -177,6 +183,15 @@ export class Scene {
       this.earthSpinListener = null;
       console.log('🌍 Earth spinning stopped');
     }
+  }
+
+  public enableDefaultCameraControls(enable: boolean): void {
+    this.viewer.scene.screenSpaceCameraController.enableRotate = enable;
+    this.viewer.scene.screenSpaceCameraController.enableZoom = enable;
+    this.viewer.scene.screenSpaceCameraController.enableLook = enable;
+    this.viewer.scene.screenSpaceCameraController.enableTilt = enable;
+    this.viewer.scene.screenSpaceCameraController.enableTranslate = enable;
+    console.log(`📷 Cesium default camera controls: ${enable ? 'ENABLED' : 'DISABLED'}`);
   }
 
   // Two-phase smooth zoom animation to target location

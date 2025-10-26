@@ -4,6 +4,8 @@ import { GameLoop } from '../core/GameLoop';
 import { VehicleManager } from '../managers/VehicleManager';
 import { CameraManager } from '../managers/CameraManager';
 import { InputManager } from '../input/InputManager';
+import { ObjectManager } from '../builder/ObjectManager';
+import { PlacementController } from '../builder/PlacementController';
 
 export class CesiumVehicleGame {
   private scene: Scene;
@@ -11,6 +13,8 @@ export class CesiumVehicleGame {
   private vehicleManager: VehicleManager;
   private cameraManager: CameraManager;
   private inputManager: InputManager;
+  private objectManager: ObjectManager;
+  private placementController: PlacementController;
 
   constructor(containerId: string = "cesiumContainer") {
     this.scene = new Scene(containerId);
@@ -18,6 +22,8 @@ export class CesiumVehicleGame {
     this.vehicleManager = new VehicleManager(this.scene);
     this.cameraManager = new CameraManager(this.scene.camera);
     this.inputManager = new InputManager();
+    this.objectManager = new ObjectManager(this.scene.viewer);
+    this.placementController = new PlacementController(this.scene.viewer, this.objectManager);
 
     this.setupSystems();
     this.setupInputHandling();
@@ -26,6 +32,11 @@ export class CesiumVehicleGame {
   private setupSystems(): void {
     this.gameLoop.addUpdatable(this.vehicleManager);
     this.gameLoop.addUpdatable(this.cameraManager);
+    this.gameLoop.addUpdatable({
+      update: (deltaTime: number) => {
+        this.placementController.update(deltaTime);
+      }
+    });
     
     this.vehicleManager.onVehicleChange((vehicle) => {
       this.cameraManager.setTarget(vehicle);
@@ -36,6 +47,21 @@ export class CesiumVehicleGame {
   private setupInputHandling(): void {
     this.vehicleManager.setupInputHandling(this.inputManager);
     this.cameraManager.setupInputHandling(this.inputManager);
+    
+    // Builder placement inputs
+    this.inputManager.onInput('throttle', (pressed) => this.placementController.setMoveInput({ forward: pressed }));
+    this.inputManager.onInput('brake', (pressed) => this.placementController.setMoveInput({ backward: pressed }));
+    this.inputManager.onInput('turnLeft', (pressed) => this.placementController.setMoveInput({ left: pressed }));
+    this.inputManager.onInput('turnRight', (pressed) => this.placementController.setMoveInput({ right: pressed }));
+    this.inputManager.onInput('altitudeUp', (pressed) => this.placementController.setMoveInput({ up: pressed }));
+    this.inputManager.onInput('altitudeDown', (pressed) => this.placementController.setMoveInput({ down: pressed }));
+    
+    // Space bar to spawn object
+    this.inputManager.onInput('spawnObject', (pressed) => {
+      if (pressed) {
+        this.placementController.placeObjectAtCursor();
+      }
+    });
   }
 
   public async startCinematicSequence(): Promise<void> {
@@ -84,6 +110,14 @@ export class CesiumVehicleGame {
 
   public getScene(): Scene {
     return this.scene;
+  }
+
+  public getObjectManager(): ObjectManager {
+    return this.objectManager;
+  }
+
+  public getPlacementController(): PlacementController {
+    return this.placementController;
   }
 
   public destroy(): void {

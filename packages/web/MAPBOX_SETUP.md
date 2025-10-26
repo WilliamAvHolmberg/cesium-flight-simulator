@@ -111,3 +111,4 @@ packages/web/src/react/features/minimap/
 - `react-map-gl` - React wrapper for Mapbox
 - `@types/mapbox-gl` - TypeScript definitions
 
+

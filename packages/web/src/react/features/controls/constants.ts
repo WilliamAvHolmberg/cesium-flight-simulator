@@ -15,7 +15,17 @@ export const CAMERA_CONTROLS: ControlItem[] = [
 
 export const MODE_CONTROLS: ControlItem[] = [
   { keys: ['M'], description: 'Toggle Rover/Aircraft' },
-  { keys: ['B'], description: 'Toggle Collision' },
+  { keys: ['V'], description: 'Toggle Collision' },
+  { keys: ['B'], description: 'Toggle Builder Mode' },
+];
+
+export const BUILDER_CONTROLS: ControlItem[] = [
+  { keys: ['W', 'A', 'S', 'D'], description: 'Move Spawn Cursor' },
+  { keys: ['↑', '↓'], description: 'Cursor Up/Down' },
+  { keys: ['Space'], description: 'Spawn Object' },
+  { keys: ['Mouse Drag'], description: 'Look Around' },
+  { keys: ['Scroll'], description: 'Zoom In/Out' },
+  { keys: ['B'], description: 'Exit Builder Mode' },
 ];
 
 

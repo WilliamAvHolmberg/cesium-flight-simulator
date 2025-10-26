@@ -59,7 +59,7 @@ export class Aircraft extends Vehicle {
   }
 
   public update(deltaTime: number): void {
-    if (!this.isReady || this.crashed) return;
+    if (!this.isReady || this.crashed || !this.physicsEnabled) return;
 
     const result = this.physics.update(deltaTime, this.input);
 

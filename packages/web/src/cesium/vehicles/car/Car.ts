@@ -70,7 +70,7 @@ export class Car extends Vehicle {
   }
 
   public update(deltaTime: number): void {
-    if (!this.isReady) return;
+    if (!this.isReady || !this.physicsEnabled) return;
 
     const physicsResult = this.physics.update(
       deltaTime,

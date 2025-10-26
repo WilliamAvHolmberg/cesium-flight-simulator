@@ -1,24 +1,37 @@
 import * as Cesium from 'cesium';
 import { TypedEventEmitter } from './TypedEventEmitter';
-import type { GameEvents, VehicleStateData } from './types';
+import type { GameEvents, VehicleStateData, GameMode } from './types';
 import type { CesiumVehicleGame } from '../bootstrap/main';
 import type { CameraType } from '../managers/CameraManager';
 import type { QualityConfig } from '../core/Scene';
 import { Car } from '../vehicles/car/Car';
 import { Aircraft } from '../vehicles/aircraft/Aircraft';
 import type { Vehicle } from '../vehicles/Vehicle';
+import { ModeManager } from '../modes/ModeManager';
 
 export class GameBridge extends TypedEventEmitter<GameEvents> {
   private game: CesiumVehicleGame;
   private updateInterval: number | null = null;
+  private currentMode: GameMode = 'play';
+  private modeManager: ModeManager;
 
   constructor(game: CesiumVehicleGame) {
     super();
     this.game = game;
+    this.modeManager = new ModeManager(game);
     this.startUpdates();
     this.setupVehicleChangeListener();
+    this.setupBuilderModeListener();
     this.applyQualityPreset('performance');
     console.log('🎮 Applied performance mode on startup');
+  }
+
+  private setupBuilderModeListener(): void {
+    this.game.getInputManager().onInput('toggleBuilder', (pressed) => {
+      if (pressed) {
+        this.toggleBuilderMode();
+      }
+    });
   }
 
   private setupVehicleChangeListener(): void {
@@ -194,6 +207,31 @@ export class GameBridge extends TypedEventEmitter<GameEvents> {
 
   public updateQualitySettings(config: Partial<QualityConfig>): void {
     this.game.getScene().updateQualityConfig(config);
+  }
+
+  public toggleBuilderMode(): void {
+    const newMode: GameMode = this.currentMode === 'play' ? 'builder' : 'play';
+    this.setMode(newMode);
+  }
+
+  public setMode(mode: GameMode): void {
+    if (this.currentMode === mode) {
+      console.log(`🎮 Already in ${mode} mode`);
+      return;
+    }
+    
+    const previousMode = this.currentMode;
+    this.currentMode = mode;
+    
+    this.modeManager.onModeChanged(previousMode, mode);
+    
+    this.emit('modeChanged', { mode, previousMode });
+    
+    console.log(`🎮 Mode changed: ${previousMode} → ${mode}`);
+  }
+
+  public getMode(): GameMode {
+    return this.currentMode;
   }
 
   public applyQualityPreset(preset: 'performance' | 'balanced' | 'quality' | 'ultra'): void {

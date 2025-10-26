@@ -21,6 +21,9 @@ export function useGameMethod() {
     getQualitySettings: (): QualityConfig => bridge.getQualitySettings(),
     updateQualitySettings: (config: Partial<QualityConfig>) => bridge.updateQualitySettings(config),
     applyQualityPreset: (preset: 'performance' | 'balanced' | 'quality' | 'ultra') => bridge.applyQualityPreset(preset),
+    toggleBuilderMode: () => bridge.toggleBuilderMode(),
+    setMode: (mode: 'play' | 'builder') => bridge.setMode(mode),
+    getMode: () => bridge.getMode(),
   };
 }
 
