@@ -6,6 +6,7 @@ import { CameraManager } from '../managers/CameraManager';
 import { InputManager } from '../input/InputManager';
 import { ObjectManager } from '../builder/ObjectManager';
 import { PlacementController } from '../builder/PlacementController';
+import { TouchInputManager } from '../input/TouchInputManager';
 
 export class CesiumVehicleGame {
   private scene: Scene;
@@ -15,6 +16,7 @@ export class CesiumVehicleGame {
   private inputManager: InputManager;
   private objectManager: ObjectManager;
   private placementController: PlacementController;
+  private touchInputManager: TouchInputManager | null = null;
 
   constructor(containerId: string = "cesiumContainer") {
     this.scene = new Scene(containerId);
@@ -27,6 +29,7 @@ export class CesiumVehicleGame {
 
     this.setupSystems();
     this.setupInputHandling();
+    this.setupTouchControls(containerId);
   }
 
   private setupSystems(): void {
@@ -62,6 +65,31 @@ export class CesiumVehicleGame {
         this.placementController.placeObjectAtCursor();
       }
     });
+  }
+
+  private setupTouchControls(containerId: string): void {
+    const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (!isMobile) return;
+
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    this.touchInputManager = new TouchInputManager(container);
+    
+    this.touchInputManager.onInput('rollLeft', (pressed) => 
+      this.vehicleManager.handleInput('rollLeft', pressed)
+    );
+    this.touchInputManager.onInput('rollRight', (pressed) => 
+      this.vehicleManager.handleInput('rollRight', pressed)
+    );
+    this.touchInputManager.onInput('altitudeUp', (pressed) => 
+      this.vehicleManager.handleInput('altitudeUp', pressed)
+    );
+    this.touchInputManager.onInput('altitudeDown', (pressed) => 
+      this.vehicleManager.handleInput('altitudeDown', pressed)
+    );
+
+    console.log('📱 Touch controls initialized');
   }
 
   public async startCinematicSequence(): Promise<void> {
@@ -126,6 +154,7 @@ export class CesiumVehicleGame {
     this.vehicleManager.destroy();
     this.cameraManager.destroy();
     this.inputManager.destroy();
+    this.touchInputManager?.destroy();
   }
 }
 

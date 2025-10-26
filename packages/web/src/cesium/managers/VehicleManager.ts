@@ -219,6 +219,11 @@ export class VehicleManager implements Updatable {
     this.activeVehicle.setInput({ [inputName]: pressed });
   }
 
+  public setTargetSpeed(speed: number): void {
+    if (!this.activeVehicle) return;
+    this.activeVehicle.setInput({ targetSpeed: speed });
+  }
+
   public setupInputHandling(inputManager: InputManager): void {
     inputManager.onInput('throttle', (pressed) => this.handleInput('throttle', pressed));
     inputManager.onInput('brake', (pressed) => this.handleInput('brake', pressed));
@@ -228,6 +233,8 @@ export class VehicleManager implements Updatable {
     inputManager.onInput('altitudeDown', (pressed) => this.handleInput('altitudeDown', pressed));
     inputManager.onInput('rollLeft', (pressed) => this.handleInput('rollLeft', pressed));
     inputManager.onInput('rollRight', (pressed) => this.handleInput('rollRight', pressed));
+
+    inputManager.onTargetSpeedChange((speed) => this.setTargetSpeed(speed));
 
     inputManager.onInput('toggleRoverMode', (pressed) => {
       if (pressed) this.toggleVehicleType();

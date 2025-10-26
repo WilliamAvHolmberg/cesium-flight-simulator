@@ -284,5 +284,9 @@ export class GameBridge extends TypedEventEmitter<GameEvents> {
       console.log(`🎨 Applied ${preset} quality preset`);
     }
   }
+
+  public setThrottle(percent: number): void {
+    this.game.getInputManager().setThrottlePercent(percent * 100);
+  }
 }
 

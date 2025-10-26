@@ -9,6 +9,7 @@ export interface AircraftInput {
   altitudeDown: boolean;
   rollLeft: boolean;
   rollRight: boolean;
+  targetSpeed?: number;
 }
 
 export interface AircraftConfig {
@@ -62,11 +63,15 @@ export class AircraftPhysics {
   }
 
   public update(deltaTime: number, input: AircraftInput): AircraftUpdateResult {
-    const targetDelta = (input.throttle ? 1 : 0) - (input.brake ? 1 : 0);
-    if (targetDelta !== 0) {
-      this.targetSpeed += targetDelta * this.config.speedChangeRate * deltaTime;
+    if (input.targetSpeed !== undefined) {
+      this.targetSpeed = Math.max(this.config.minSpeed, Math.min(this.config.maxSpeed, input.targetSpeed));
+    } else {
+      const targetDelta = (input.throttle ? 1 : 0) - (input.brake ? 1 : 0);
+      if (targetDelta !== 0) {
+        this.targetSpeed += targetDelta * this.config.speedChangeRate * deltaTime;
+      }
+      this.targetSpeed = Math.max(this.config.minSpeed, Math.min(this.config.maxSpeed, this.targetSpeed));
     }
-    this.targetSpeed = Math.max(this.config.minSpeed, Math.min(this.config.maxSpeed, this.targetSpeed));
 
     const speedDiff = this.targetSpeed - this.currentSpeed;
     const maxSpeedStep = this.config.speedChangeRate * deltaTime;
@@ -79,6 +84,15 @@ export class AircraftPhysics {
 
     const targetRoll = rollInput * this.config.maxRoll;
     this.roll = Cesium.Math.lerp(this.roll, targetRoll, 0.15);
+
+    let turnInput = 0;
+    if (input.turnLeft || input.rollLeft) turnInput -= 1;
+    if (input.turnRight || input.rollRight) turnInput += 1;
+
+    const rollTurnFactor = this.roll / this.config.maxRoll;
+    const totalTurnInput = turnInput + rollTurnFactor;
+
+    this.heading = Cesium.Math.zeroToTwoPi(this.heading + totalTurnInput * this.config.turnRate * deltaTime);
 
     let climbInput = 0;
     if (input.altitudeUp) climbInput += 1;
@@ -98,8 +112,8 @@ export class AircraftPhysics {
 
     const forwardStep = this.currentSpeed * deltaTime;
     const positionDelta = Cesium.Cartesian3.multiplyByScalar(
-      AircraftPhysics.scratchLocalForward, 
-      forwardStep, 
+      AircraftPhysics.scratchLocalForward,
+      forwardStep,
       AircraftPhysics.scratchPositionDelta
     );
 

@@ -113,7 +113,9 @@ export function MiniMap() {
   }, []);
 
   const mapBearing = isNorthUp ? 0 : -position.heading;
-  const size = isExpanded ? 'w-[500px] h-[500px]' : 'w-[280px] h-[280px]';
+  const size = isExpanded
+    ? 'w-[280px] h-[280px] md:w-[500px] md:h-[500px]'
+    : 'w-[160px] h-[160px] md:w-[280px] md:h-[280px]';
 
   return (
     <>
