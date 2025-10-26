@@ -37,7 +37,7 @@ export class Aircraft extends Vehicle {
     super(id, config);
     this.physics = new AircraftPhysics({
       minSpeed: 15,
-      maxSpeed: 120,
+      maxSpeed: 1200,
       speedChangeRate: 25,
       turnRate: Cesium.Math.toRadians(45),
       climbRate: 20,
