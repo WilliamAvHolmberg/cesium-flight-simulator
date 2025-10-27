@@ -4,6 +4,7 @@ import type { GameMode } from '../bridge/types';
 
 export class ModeManager {
   private currentMode: GameMode = 'play';
+  private mapClickHandler: Cesium.ScreenSpaceEventHandler | null = null;
 
   constructor(
     private game: CesiumVehicleGame
@@ -17,6 +18,10 @@ export class ModeManager {
       this.enterBuilderMode();
     } else if (to === 'play') {
       this.exitBuilderMode();
+    } else if (to === 'geoguess_builder') {
+      this.enterGeoGuessBuilderMode();
+    } else if (to === 'geoguess_play') {
+      this.enterGeoGuessPlayMode();
     }
   }
 
@@ -98,6 +103,88 @@ export class ModeManager {
     cameraManager.setActiveCamera('follow');
     
     console.log('✅ Play mode active - follow camera enabled');
+  }
+
+  private enterGeoGuessBuilderMode(): void {
+    console.log('🗺️ Entering GeoGuess Builder mode...');
+    
+    const scene = this.game.getScene();
+    const vehicleManager = this.game.getVehicleManager();
+    const cameraManager = this.game.getCameraManager();
+    const geoGuessController = this.game.getGeoGuessController();
+    
+    const vehicle = vehicleManager.getActiveVehicle();
+    if (vehicle) {
+      (vehicle as any).physicsEnabled = false;
+    }
+    
+    const activeCamera = cameraManager.getActiveCamera();
+    if (activeCamera) {
+      activeCamera.deactivate();
+    }
+    
+    scene.enableDefaultCameraControls(true);
+    
+    geoGuessController.startBuilding();
+    
+    this.setupMapClickHandler();
+    
+    console.log('✅ GeoGuess Builder mode active');
+  }
+
+  private enterGeoGuessPlayMode(): void {
+    console.log('🎮 Entering GeoGuess Play mode...');
+    
+    const scene = this.game.getScene();
+    const cameraManager = this.game.getCameraManager();
+    
+    const activeCamera = cameraManager.getActiveCamera();
+    if (activeCamera) {
+      activeCamera.deactivate();
+    }
+    
+    scene.enableDefaultCameraControls(true);
+    
+    this.removeMapClickHandler();
+    
+    console.log('✅ GeoGuess Play mode active');
+  }
+
+  private setupMapClickHandler(): void {
+    this.removeMapClickHandler();
+    
+    const scene = this.game.getScene();
+    const geoGuessController = this.game.getGeoGuessController();
+    
+    this.mapClickHandler = new Cesium.ScreenSpaceEventHandler(scene.viewer.canvas);
+    
+    this.mapClickHandler.setInputAction((click: any) => {
+      const selectedPlace = geoGuessController.getSelectedPlace();
+      if (!selectedPlace) return;
+      
+      const ray = scene.camera.getPickRay(click.position);
+      if (!ray) return;
+      
+      const cartesian = scene.scene.globe.pick(ray, scene.scene);
+      if (!cartesian) return;
+      
+      const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+      const position = {
+        latitude: Cesium.Math.toDegrees(cartographic.latitude),
+        longitude: Cesium.Math.toDegrees(cartographic.longitude),
+        height: cartographic.height,
+      };
+      
+      geoGuessController.placeFlag(position);
+      console.log('📍 Flag placed at:', position);
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+  }
+
+  private removeMapClickHandler(): void {
+    if (this.mapClickHandler) {
+      this.mapClickHandler.destroy();
+      this.mapClickHandler = null;
+    }
   }
 
   public getCurrentMode(): GameMode {

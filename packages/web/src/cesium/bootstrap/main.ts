@@ -7,6 +7,7 @@ import { InputManager } from '../input/InputManager';
 import { ObjectManager } from '../builder/ObjectManager';
 import { PlacementController } from '../builder/PlacementController';
 import { TouchInputManager } from '../input/TouchInputManager';
+import { GeoGuessController } from '../geoguess/GeoGuessController';
 
 export class CesiumVehicleGame {
   private scene: Scene;
@@ -17,6 +18,7 @@ export class CesiumVehicleGame {
   private objectManager: ObjectManager;
   private placementController: PlacementController;
   private touchInputManager: TouchInputManager | null = null;
+  private geoGuessController: GeoGuessController;
 
   constructor(containerId: string = "cesiumContainer") {
     this.scene = new Scene(containerId);
@@ -26,6 +28,7 @@ export class CesiumVehicleGame {
     this.inputManager = new InputManager();
     this.objectManager = new ObjectManager(this.scene.viewer);
     this.placementController = new PlacementController(this.scene.viewer, this.objectManager);
+    this.geoGuessController = new GeoGuessController(this);
 
     this.setupSystems();
     this.setupInputHandling();
@@ -38,6 +41,14 @@ export class CesiumVehicleGame {
     this.gameLoop.addUpdatable({
       update: (deltaTime: number) => {
         this.placementController.update(deltaTime);
+      }
+    });
+    this.gameLoop.addUpdatable({
+      update: (deltaTime: number) => {
+        const modeManager = (this as any).modeManager;
+        if (modeManager?.getCurrentMode() === 'geoguess_play') {
+          this.geoGuessController.enforceAltitudeLimit();
+        }
       }
     });
     
@@ -146,6 +157,10 @@ export class CesiumVehicleGame {
 
   public getPlacementController(): PlacementController {
     return this.placementController;
+  }
+
+  public getGeoGuessController(): GeoGuessController {
+    return this.geoGuessController;
   }
 
   public destroy(): void {
