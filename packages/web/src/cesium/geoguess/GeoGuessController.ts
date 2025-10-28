@@ -41,6 +41,7 @@ export class GeoGuessController {
       startTime: Date.now(),
     };
     
+    // Load first place (async but we don't await here)
     this.loadCurrentPlace();
   }
 
@@ -183,6 +184,7 @@ export class GeoGuessController {
       return false;
     }
 
+    // Load next place (async but we don't await here)
     this.loadCurrentPlace();
     return true;
   }
@@ -202,44 +204,68 @@ export class GeoGuessController {
     }
   }
 
-  private loadCurrentPlace(): void {
+  private async loadCurrentPlace(): Promise<void> {
     const place = this.getCurrentPlace();
     if (!place) return;
 
     this.flagManager.removeAllFlags();
     
-    // Spawn airplane at the location
     const scene = (this.game as any).getScene();
     const vehicleManager = (this.game as any).getVehicleManager();
     const vehicle = vehicleManager.getActiveVehicle();
     
-    if (vehicle) {
-      const spawnPosition = Cesium.Cartesian3.fromDegrees(
-        place.position.longitude,
-        place.position.latitude,
-        place.position.height + 200 // Spawn 200m above location
-      );
-      
-      const currentState = vehicle.getState();
-      vehicle.setState({
-        ...currentState,
-        position: spawnPosition,
-        heading: 0,
-        pitch: 0,
-        roll: 0,
-        velocity: 0,
-        speed: 0
-      });
-      
-      // Enable spawn protection to prevent crash while tiles load
-      if (typeof vehicle.enableSpawnProtection === 'function') {
-        vehicle.enableSpawnProtection();
-      }
-      
-      console.log(`✈️ Airplane spawned at location: ${place.label}`);
-    }
+    if (!vehicle) return;
+
+    // STEP 1: Move camera to location first (no vehicle yet)
+    const targetPosition = Cesium.Cartesian3.fromDegrees(
+      place.position.longitude,
+      place.position.latitude,
+      place.position.height + 200
+    );
+
+    console.log(`📷 Moving camera to location: ${place.label}...`);
     
-    // Show a BIG flag marker at the target location so player can see it
+    // Fly camera to location
+    await new Promise<void>((resolve) => {
+      scene.camera.flyTo({
+        destination: targetPosition,
+        duration: 2,
+        orientation: {
+          heading: 0,
+          pitch: Cesium.Math.toRadians(-20),
+          roll: 0
+        },
+        complete: () => {
+          console.log('📷 Camera arrived at location');
+          resolve();
+        }
+      });
+    });
+
+    // STEP 2: Wait for tiles to load
+    console.log('⏳ Waiting for 3D tiles to load...');
+    const tilesLoaded = await scene.waitForTilesToLoad(5000);
+    
+    if (!tilesLoaded) {
+      console.warn('⚠️ Tiles did not fully load, but continuing anyway...');
+    }
+
+    // STEP 3: Now spawn the vehicle safely
+    console.log('✈️ Spawning airplane...');
+    const currentState = vehicle.getState();
+    vehicle.setState({
+      ...currentState,
+      position: targetPosition,
+      heading: 0,
+      pitch: 0,
+      roll: 0,
+      velocity: 0,
+      speed: 0
+    });
+    
+    console.log(`✅ Airplane spawned at location: ${place.label}`);
+    
+    // Show a flag marker at the target location
     this.flagManager.addFlag(
       'target',
       place.position,

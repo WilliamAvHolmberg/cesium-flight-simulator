@@ -171,6 +171,51 @@ export class Scene {
     }
   }
 
+  public getTileset(): Cesium.Cesium3DTileset | null {
+    return this.tileset;
+  }
+
+  public async waitForTilesToLoad(timeoutMs: number = 5000): Promise<boolean> {
+    if (!this.tileset) {
+      console.warn('⚠️ No tileset available');
+      return false;
+    }
+
+    const startTime = Date.now();
+    
+    return new Promise((resolve) => {
+      // Check if tiles are already loaded
+      if (this.tileset!.tilesLoaded) {
+        console.log('✅ Tiles already loaded');
+        resolve(true);
+        return;
+      }
+
+      // Set up timeout
+      const timeout = setTimeout(() => {
+        console.warn('⚠️ Tile loading timeout after', timeoutMs, 'ms');
+        if (listener) {
+          this.tileset!.tileLoad.removeEventListener(listener);
+        }
+        resolve(false);
+      }, timeoutMs);
+
+      // Listen for tile loading
+      const listener = () => {
+        // Check if we have enough tiles loaded (tiles in view are loaded)
+        if (this.tileset!.tilesLoaded) {
+          const elapsed = Date.now() - startTime;
+          console.log(`✅ Tiles loaded in ${elapsed}ms`);
+          clearTimeout(timeout);
+          this.tileset!.tileLoad.removeEventListener(listener);
+          resolve(true);
+        }
+      };
+
+      this.tileset.tileLoad.addEventListener(listener);
+    });
+  }
+
   // Earth spinning functionality for startup sequence
   public startEarthSpin(): void {
     if (this.earthSpinListener) {
