@@ -21,7 +21,7 @@ export function App() {
   const [appMode, setAppMode] = useState<'menu' | 'flightsim' | 'geoguess_menu'>('menu');
 
   const isMobile = isMobileDevice();
-  const { setThrottle, callMethod } = useGameMethod();
+  const { setThrottle, getGeoGuessController } = useGameMethod();
 
   const handleThrottleChange = (percent: number) => {
     setThrottle(percent / 100);
@@ -38,7 +38,7 @@ export function App() {
 
   const handleStartBuilder = () => {
     setMode('geoguess_builder');
-    const controller = callMethod('getGeoGuessController');
+    const controller = getGeoGuessController();
     if (controller) {
       controller.startBuilding();
     }
@@ -58,7 +58,7 @@ export function App() {
 
     setMode('geoguess_play');
     
-    const controller = callMethod('getGeoGuessController');
+    const controller = getGeoGuessController();
     if (controller) {
       controller.startPlaying(challenge);
     }

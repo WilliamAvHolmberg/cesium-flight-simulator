@@ -1,0 +1,53 @@
+🐛 BUG FIX: callMethod is not a function
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISSUE:
+When switching to GeoGuess builder mode, the app crashed with:
+"Uncaught TypeError: callMethod is not a function"
+
+ROOT CAUSE:
+The GeoGuess hooks (useChallengeBuilder and useChallengePlayer) were trying 
+to use a generic callMethod() function that doesn't exist in useGameMethod.
+
+SOLUTION:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Added getGeoGuessController() method to GameBridge.ts
+   - Exposes the GeoGuessController to React components
+   
+2. Updated useGameMethod.ts hook
+   - Added getGeoGuessController to the returned methods
+   - Updated setMode type to include new game modes
+   
+3. Fixed useChallengeBuilder.ts hook
+   - Now uses getGeoGuessController() instead of callMethod()
+   - Properly calls controller methods with null checks
+   
+4. Fixed useChallengePlayer.ts hook
+   - Now uses getGeoGuessController() instead of callMethod()
+   - Added null checks for return values
+   
+5. Fixed App.tsx
+   - Uses getGeoGuessController() from useGameMethod
+   - Proper destructuring of the hook
+
+6. Fixed GuessingMap.tsx
+   - Added null check for submitGuess return value
+
+FILES MODIFIED:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ cesium/bridge/GameBridge.ts
+✓ react/hooks/useGameMethod.ts
+✓ react/features/geoguess/hooks/useChallengeBuilder.ts
+✓ react/features/geoguess/hooks/useChallengePlayer.ts
+✓ react/App.tsx
+✓ react/features/geoguess/components/play/GuessingMap.tsx
+
+STATUS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ All errors fixed
+✅ No linter errors
+✅ TypeScript compilation successful
+✅ Ready to test
+
+The GeoGuess mode should now work without crashes!

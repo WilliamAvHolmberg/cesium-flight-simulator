@@ -35,8 +35,10 @@ export function GuessingMap() {
     if (!guessPosition) return;
 
     const guess = submitGuess(guessPosition);
-    setLastGuess(guess);
-    setShowingResult(true);
+    if (guess) {
+      setLastGuess(guess);
+      setShowingResult(true);
+    }
   };
 
   const handleNext = () => {

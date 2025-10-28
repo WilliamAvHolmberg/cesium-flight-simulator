@@ -2,14 +2,15 @@ import { useGameMethod } from '../../../hooks/useGameMethod';
 import type { Challenge } from '../../../../cesium/geoguess/types';
 
 export function useChallengeBuilder() {
-  const { callMethod } = useGameMethod();
+  const { getGeoGuessController } = useGameMethod();
 
   const getCurrentChallenge = (): Challenge | null => {
-    return callMethod<Challenge | null>('getGeoGuessController.getCurrentChallenge');
+    const controller = getGeoGuessController();
+    return controller?.getCurrentChallenge() || null;
   };
 
   const addPlace = (label: string) => {
-    const controller = callMethod<any>('getGeoGuessController');
+    const controller = getGeoGuessController();
     if (!controller) return null;
 
     const teleporter = controller.getTeleporter();
@@ -19,19 +20,29 @@ export function useChallengeBuilder() {
   };
 
   const updatePlace = (placeId: string, updates: any) => {
-    callMethod('getGeoGuessController.updatePlace', placeId, updates);
+    const controller = getGeoGuessController();
+    if (controller) {
+      controller.updatePlace(placeId, updates);
+    }
   };
 
   const deletePlace = (placeId: string) => {
-    callMethod('getGeoGuessController.deletePlace', placeId);
+    const controller = getGeoGuessController();
+    if (controller) {
+      controller.deletePlace(placeId);
+    }
   };
 
   const selectPlace = (placeId: string) => {
-    callMethod('getGeoGuessController.selectPlace', placeId);
+    const controller = getGeoGuessController();
+    if (controller) {
+      controller.selectPlace(placeId);
+    }
   };
 
   const getSelectedPlace = () => {
-    return callMethod<any>('getGeoGuessController.getSelectedPlace');
+    const controller = getGeoGuessController();
+    return controller?.getSelectedPlace() || null;
   };
 
   const updateChallengeMetadata = (updates: Partial<Challenge>) => {

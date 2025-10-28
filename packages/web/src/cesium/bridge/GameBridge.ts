@@ -234,6 +234,10 @@ export class GameBridge extends TypedEventEmitter<GameEvents> {
     return this.currentMode;
   }
 
+  public getGeoGuessController() {
+    return this.game.getGeoGuessController();
+  }
+
   public applyQualityPreset(preset: 'performance' | 'balanced' | 'quality' | 'ultra'): void {
     const presets: Record<string, Partial<QualityConfig>> = {
       performance: {
