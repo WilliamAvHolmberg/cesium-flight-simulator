@@ -217,46 +217,39 @@ export class GeoGuessController {
     if (!vehicle) return;
 
     // STEP 1: Calculate proper spawn position (1000m above ground)
-    const spawnHeight = 1000; // High enough to see the area
+    const spawnHeight = 1000;
     const targetPosition = Cesium.Cartesian3.fromDegrees(
       place.position.longitude,
       place.position.latitude,
       spawnHeight
     );
 
-    console.log(`📷 Moving camera to location: ${place.label} at ${place.position.latitude.toFixed(4)}, ${place.position.longitude.toFixed(4)}`);
+    console.log(`📷 Teleporting to location: ${place.label} at ${place.position.latitude.toFixed(4)}, ${place.position.longitude.toFixed(4)}`);
     
-    // Fly camera to location (fast)
-    await new Promise<void>((resolve) => {
-      scene.camera.flyTo({
-        destination: targetPosition,
-        duration: 1, // Fast camera movement
-        orientation: {
-          heading: 0,
-          pitch: Cesium.Math.toRadians(-20),
-          roll: 0
-        },
-        complete: () => {
-          console.log('📷 Camera arrived at location');
-          resolve();
-        }
-      });
+    // INSTANT teleport - no camera flight animation
+    scene.camera.setView({
+      destination: targetPosition,
+      orientation: {
+        heading: 0,
+        pitch: Cesium.Math.toRadians(-20),
+        roll: 0
+      }
     });
 
-    // STEP 2: Wait for tiles to load
-    console.log('⏳ Waiting for 3D tiles to load...');
-    const tilesLoaded = await scene.waitForTilesToLoad(5000);
+    // STEP 2: Quick tile check (shorter timeout for faster transitions)
+    console.log('⏳ Checking tiles...');
+    const tilesLoaded = await scene.waitForTilesToLoad(2000); // Reduced to 2 seconds
     
     if (!tilesLoaded) {
-      console.warn('⚠️ Tiles did not fully load, but continuing anyway...');
+      console.log('⏭️ Tiles still loading, continuing anyway...');
     }
 
-    // STEP 3: Now spawn the vehicle safely at the same position
+    // STEP 3: Spawn the vehicle
     console.log('✈️ Spawning airplane at 1000m altitude...');
     const currentState = vehicle.getState();
     vehicle.setState({
       ...currentState,
-      position: targetPosition, // Same as camera
+      position: targetPosition,
       heading: 0,
       pitch: 0,
       roll: 0,
@@ -264,20 +257,14 @@ export class GeoGuessController {
       speed: 0
     });
     
-    // NOW show the vehicle model
+    // Show the vehicle model
     if (vehicle.model) {
       vehicle.model.show = true;
     }
     
     console.log(`✅ Airplane spawned at location: ${place.label}`);
     
-    // Show a flag marker at the GROUND location
-    const groundPosition = Cesium.Cartesian3.fromDegrees(
-      place.position.longitude,
-      place.position.latitude,
-      place.position.height || 0 // Use the original flag height or ground level
-    );
-    
+    // Show flag at ground level
     this.flagManager.addFlag(
       'target',
       { latitude: place.position.latitude, longitude: place.position.longitude, height: place.position.height || 0 },
