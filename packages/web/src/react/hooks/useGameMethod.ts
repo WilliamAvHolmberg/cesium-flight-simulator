@@ -22,9 +22,10 @@ export function useGameMethod() {
     updateQualitySettings: (config: Partial<QualityConfig>) => bridge.updateQualitySettings(config),
     applyQualityPreset: (preset: 'performance' | 'balanced' | 'quality' | 'ultra') => bridge.applyQualityPreset(preset),
     toggleBuilderMode: () => bridge.toggleBuilderMode(),
-    setMode: (mode: 'play' | 'builder') => bridge.setMode(mode),
+    setMode: (mode: 'play' | 'builder' | 'geoguess_builder' | 'geoguess_play') => bridge.setMode(mode),
     getMode: () => bridge.getMode(),
     setThrottle: (percent: number) => bridge.setThrottle(percent),
+    getGeoGuessController: () => bridge.getGeoGuessController(),
   };
 }
 

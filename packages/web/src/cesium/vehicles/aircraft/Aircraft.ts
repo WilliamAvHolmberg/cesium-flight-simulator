@@ -19,6 +19,9 @@ export class Aircraft extends Vehicle {
   };
   private framesSinceCollisionCheck: number = 0;
   private crashed: boolean = false;
+  private spawnProtectionFrames: number = 0;
+  private static readonly SPAWN_PROTECTION_DURATION = 180; // 3 seconds at 60fps
+  public collisionEnabled: boolean = true; // Can be disabled for GeoGuess mode
 
   private static readonly scratchTransform = new Cesium.Matrix4();
   private static readonly scratchWorldForward = new Cesium.Cartesian3();
@@ -60,6 +63,11 @@ export class Aircraft extends Vehicle {
 
   public update(deltaTime: number): void {
     if (!this.isReady || this.crashed || !this.physicsEnabled) return;
+
+    // Update spawn protection counter
+    if (this.spawnProtectionFrames > 0) {
+      this.spawnProtectionFrames--;
+    }
 
     const result = this.physics.update(deltaTime, this.input);
 
@@ -109,7 +117,10 @@ export class Aircraft extends Vehicle {
     this.framesSinceCollisionCheck++;
     if (this.framesSinceCollisionCheck >= 8) {
       this.framesSinceCollisionCheck = 0;
-      this.performCollisionCheck();
+      // Only check collision if enabled and spawn protection has expired
+      if (this.collisionEnabled && this.spawnProtectionFrames <= 0) {
+        this.performCollisionCheck();
+      }
     }
 
     this.updateModelMatrix();
@@ -170,6 +181,11 @@ export class Aircraft extends Vehicle {
 
   public resetCrash(): void {
     this.crashed = false;
+  }
+
+  public enableSpawnProtection(): void {
+    this.spawnProtectionFrames = Aircraft.SPAWN_PROTECTION_DURATION;
+    console.log('🛡️ Spawn protection enabled for 3 seconds');
   }
 
   public setInput(input: Partial<AircraftInput>): void {

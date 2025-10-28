@@ -4,6 +4,7 @@ import type { GameMode } from '../bridge/types';
 
 export class ModeManager {
   private currentMode: GameMode = 'play';
+  private mapClickHandler: Cesium.ScreenSpaceEventHandler | null = null;
 
   constructor(
     private game: CesiumVehicleGame
@@ -17,6 +18,10 @@ export class ModeManager {
       this.enterBuilderMode();
     } else if (to === 'play') {
       this.exitBuilderMode();
+    } else if (to === 'geoguess_builder') {
+      this.enterGeoGuessBuilderMode();
+    } else if (to === 'geoguess_play') {
+      this.enterGeoGuessPlayMode();
     }
   }
 
@@ -85,10 +90,14 @@ export class ModeManager {
     // Disable object placement
     placementController.disable();
     
-    // Re-enable vehicle physics
+    // Re-enable vehicle physics and visibility
     const vehicle = vehicleManager.getActiveVehicle();
     if (vehicle) {
       (vehicle as any).physicsEnabled = true;
+      // Show the vehicle model again
+      if (vehicle.model) {
+        vehicle.model.show = true;
+      }
     }
     
     // Disable Cesium's default camera controls
@@ -97,7 +106,130 @@ export class ModeManager {
     // Re-enable our custom follow camera
     cameraManager.setActiveCamera('follow');
     
-    console.log('✅ Play mode active - follow camera enabled');
+    console.log('✅ Play mode active - follow camera enabled, vehicle visible');
+  }
+
+  private enterGeoGuessBuilderMode(): void {
+    console.log('🗺️ Entering GeoGuess Builder mode...');
+    
+    const scene = this.game.getScene();
+    const vehicleManager = this.game.getVehicleManager();
+    const cameraManager = this.game.getCameraManager();
+    const geoGuessController = this.game.getGeoGuessController();
+    
+    // Disable and hide any active vehicle
+    const vehicle = vehicleManager.getActiveVehicle();
+    if (vehicle) {
+      (vehicle as any).physicsEnabled = false;
+      // Hide the vehicle model
+      if (vehicle.model) {
+        vehicle.model.show = false;
+      }
+    }
+    
+    // Disable our custom cameras
+    const activeCamera = cameraManager.getActiveCamera();
+    if (activeCamera) {
+      activeCamera.deactivate();
+    }
+    
+    // Position camera for good initial view (high altitude over Earth)
+    const startPosition = Cesium.Cartesian3.fromDegrees(0, 20, 5000000); // High above equator
+    scene.camera.setView({
+      destination: startPosition,
+      orientation: {
+        heading: 0,
+        pitch: Cesium.Math.toRadians(-90), // Looking down
+        roll: 0
+      }
+    });
+    
+    // Enable Cesium's free camera controls
+    scene.enableDefaultCameraControls(true);
+    
+    geoGuessController.startBuilding();
+    
+    this.setupMapClickHandler();
+    
+    console.log('✅ GeoGuess Builder mode active - Free camera, no vehicle');
+  }
+
+  private enterGeoGuessPlayMode(): void {
+    console.log('🎮 Entering GeoGuess Play mode...');
+    
+    const scene = this.game.getScene();
+    const vehicleManager = this.game.getVehicleManager();
+    const cameraManager = this.game.getCameraManager();
+    
+    // Re-enable and show the vehicle for play mode
+    const vehicle = vehicleManager.getActiveVehicle();
+    if (vehicle) {
+      (vehicle as any).physicsEnabled = true;
+      
+      // DISABLE COLLISION DETECTION IN GEOGUESS MODE
+      (vehicle as any).collisionEnabled = false;
+      console.log('🛡️ Collision detection DISABLED for GeoGuess mode');
+      
+      // Keep vehicle HIDDEN until we spawn it at the challenge location
+      // The GeoGuessController will show it after teleporting
+      if (vehicle.model) {
+        vehicle.model.show = false;
+      }
+    }
+    
+    // Disable Cesium's default camera controls
+    scene.enableDefaultCameraControls(false);
+    
+    // Enable our custom follow camera so player can fly
+    cameraManager.setActiveCamera('follow');
+    
+    this.removeMapClickHandler();
+    
+    console.log('✅ GeoGuess Play mode active - Vehicle hidden until spawn');
+  }
+
+  private setupMapClickHandler(): void {
+    this.removeMapClickHandler();
+    
+    const scene = this.game.getScene();
+    const geoGuessController = this.game.getGeoGuessController();
+    
+    this.mapClickHandler = new Cesium.ScreenSpaceEventHandler(scene.viewer.canvas);
+    
+    this.mapClickHandler.setInputAction((click: any) => {
+      const selectedPlace = geoGuessController.getSelectedPlace();
+      if (!selectedPlace) {
+        console.log('⚠️ No place selected, please select a location first');
+        return;
+      }
+      
+      const ray = scene.camera.getPickRay(click.position);
+      if (!ray) return;
+      
+      // Use pickPosition which works with 3D tiles
+      const cartesian = scene.viewer.scene.pickPosition(click.position);
+      if (!cartesian) {
+        console.log('⚠️ Could not pick position at click location');
+        return;
+      }
+      
+      const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+      const position = {
+        latitude: Cesium.Math.toDegrees(cartographic.latitude),
+        longitude: Cesium.Math.toDegrees(cartographic.longitude),
+        height: cartographic.height,
+      };
+      
+      geoGuessController.placeFlag(position);
+      console.log('📍 Flag placed at:', position);
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+  }
+
+  private removeMapClickHandler(): void {
+    if (this.mapClickHandler) {
+      this.mapClickHandler.destroy();
+      this.mapClickHandler = null;
+    }
   }
 
   public getCurrentMode(): GameMode {

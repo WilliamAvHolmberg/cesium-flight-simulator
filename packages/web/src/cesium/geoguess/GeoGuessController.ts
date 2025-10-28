@@ -1,0 +1,345 @@
+import * as Cesium from 'cesium';
+import type { CesiumVehicleGame } from '../bootstrap/main';
+import type { Challenge, Place, Position, PlaySession, Guess } from './types';
+import { FlagManager } from './FlagManager';
+import { LocationTeleporter } from './LocationTeleporter';
+import { calculateDistance, calculatePoints } from './scoring';
+
+export class GeoGuessController {
+  private flagManager: FlagManager;
+  private teleporter: LocationTeleporter;
+  private currentChallenge: Challenge | null = null;
+  private currentSession: PlaySession | null = null;
+  private buildModeSelectedPlace: Place | null = null;
+  private maxAltitude: number = 500;
+
+  constructor(private game: CesiumVehicleGame) {
+    const scene = this.game.getScene();
+    this.flagManager = new FlagManager(scene.viewer);
+    this.teleporter = new LocationTeleporter(scene.viewer);
+  }
+
+  startBuilding(challenge?: Challenge): void {
+    this.currentChallenge = challenge || this.createEmptyChallenge();
+    this.buildModeSelectedPlace = null;
+    this.updateBuildModeFlags();
+  }
+
+  stopBuilding(): void {
+    this.flagManager.removeAllFlags();
+    this.currentChallenge = null;
+    this.buildModeSelectedPlace = null;
+  }
+
+  startPlaying(challenge: Challenge): void {
+    this.currentChallenge = challenge;
+    this.currentSession = {
+      challengeId: challenge.id,
+      currentPlaceIndex: 0,
+      guesses: [],
+      totalScore: 0,
+      startTime: Date.now(),
+    };
+    
+    // Load first place (async but we don't await here)
+    this.loadCurrentPlace();
+  }
+
+  stopPlaying(): void {
+    this.flagManager.removeAllFlags();
+    this.currentChallenge = null;
+    this.currentSession = null;
+  }
+
+  getCurrentChallenge(): Challenge | null {
+    return this.currentChallenge;
+  }
+
+  getCurrentSession(): PlaySession | null {
+    return this.currentSession;
+  }
+
+  getCurrentPlace(): Place | null {
+    if (!this.currentChallenge || !this.currentSession) return null;
+    return this.currentChallenge.places[this.currentSession.currentPlaceIndex] || null;
+  }
+
+  addPlace(position: Position, label: string = 'New Place'): Place {
+    if (!this.currentChallenge) {
+      throw new Error('No active challenge');
+    }
+
+    const place: Place = {
+      id: this.generateId(),
+      position,
+      label,
+    };
+
+    this.currentChallenge.places.push(place);
+    this.updateBuildModeFlags();
+    
+    return place;
+  }
+
+  updatePlace(placeId: string, updates: Partial<Place>): void {
+    if (!this.currentChallenge) return;
+
+    const place = this.currentChallenge.places.find(p => p.id === placeId);
+    if (place) {
+      Object.assign(place, updates);
+      this.updateBuildModeFlags();
+    }
+  }
+
+  deletePlace(placeId: string): void {
+    if (!this.currentChallenge) return;
+
+    this.currentChallenge.places = this.currentChallenge.places.filter(
+      p => p.id !== placeId
+    );
+    
+    if (this.buildModeSelectedPlace?.id === placeId) {
+      this.buildModeSelectedPlace = null;
+    }
+    
+    this.updateBuildModeFlags();
+  }
+
+  reorderPlaces(fromIndex: number, toIndex: number): void {
+    if (!this.currentChallenge) return;
+
+    const places = this.currentChallenge.places;
+    const [moved] = places.splice(fromIndex, 1);
+    places.splice(toIndex, 0, moved);
+    
+    this.updateBuildModeFlags();
+  }
+
+  selectPlace(placeId: string): void {
+    if (!this.currentChallenge) return;
+
+    const place = this.currentChallenge.places.find(p => p.id === placeId);
+    if (place) {
+      this.buildModeSelectedPlace = place;
+      
+      // Only teleport if the place has a valid position (not at 0,0,0)
+      if (place.position.latitude !== 0 || place.position.longitude !== 0 || place.position.height !== 0) {
+        // Smooth camera movement to the location
+        this.teleporter.teleportTo(place.position, 1.5);
+      } else {
+        console.log('📍 Location selected (no position set yet). Click on the map to place the flag.');
+      }
+      
+      this.updateBuildModeFlags();
+    }
+  }
+
+  getSelectedPlace(): Place | null {
+    return this.buildModeSelectedPlace;
+  }
+
+  placeFlag(position: Position): void {
+    if (!this.buildModeSelectedPlace) return;
+
+    this.updatePlace(this.buildModeSelectedPlace.id, { position });
+    this.updateBuildModeFlags();
+  }
+
+  submitGuess(guessPosition: Position): Guess {
+    if (!this.currentSession || !this.currentChallenge) {
+      throw new Error('No active play session');
+    }
+
+    const currentPlace = this.getCurrentPlace();
+    if (!currentPlace) {
+      throw new Error('No current place');
+    }
+
+    const distance = calculateDistance(currentPlace.position, guessPosition);
+    const points = calculatePoints(distance);
+    const timeTaken = Math.floor((Date.now() - this.currentSession.startTime) / 1000);
+
+    const guess: Guess = {
+      placeId: currentPlace.id,
+      position: guessPosition,
+      distance,
+      points,
+      timeTaken,
+    };
+
+    this.currentSession.guesses.push(guess);
+    this.currentSession.totalScore += points;
+
+    this.showAnswerFlags(currentPlace.position, guessPosition);
+
+    return guess;
+  }
+
+  nextPlace(): boolean {
+    if (!this.currentSession || !this.currentChallenge) return false;
+
+    this.currentSession.currentPlaceIndex++;
+    
+    if (this.currentSession.currentPlaceIndex >= this.currentChallenge.places.length) {
+      return false;
+    }
+
+    // Load next place (now synchronous - instant!)
+    this.loadCurrentPlace();
+    return true;
+  }
+
+  enforceAltitudeLimit(): void {
+    const scene = this.game.getScene();
+    const camera = scene.camera;
+    const cartographic = Cesium.Cartographic.fromCartesian(camera.position);
+    
+    if (cartographic.height > this.maxAltitude) {
+      const clamped = Cesium.Cartesian3.fromRadians(
+        cartographic.longitude,
+        cartographic.latitude,
+        this.maxAltitude
+      );
+      camera.position = clamped;
+    }
+  }
+
+  private loadCurrentPlace(): void {
+    const place = this.getCurrentPlace();
+    if (!place) return;
+
+    this.flagManager.removeAllFlags();
+    
+    const scene = (this.game as any).getScene();
+    const vehicleManager = (this.game as any).getVehicleManager();
+    const vehicle = vehicleManager.getActiveVehicle();
+    
+    if (!vehicle) return;
+
+    // Spawn airplane BEHIND the target location so player flies TOWARDS it
+    const distanceBehind = 2000; // 2km behind target
+    const spawnHeight = 1000; // 1km altitude
+    
+    // Calculate position 2km south of target (flying north towards it)
+    const targetLat = place.position.latitude;
+    const targetLon = place.position.longitude;
+    
+    // Roughly 2km south (about 0.018 degrees)
+    const spawnLat = targetLat - 0.018;
+    const spawnLon = targetLon;
+    
+    const spawnPosition = Cesium.Cartesian3.fromDegrees(
+      spawnLon,
+      spawnLat,
+      spawnHeight
+    );
+
+    console.log(`✈️ Spawning airplane 2km south of target: ${place.label}`);
+    console.log(`   Target: ${targetLat.toFixed(4)}, ${targetLon.toFixed(4)}`);
+    console.log(`   Spawn:  ${spawnLat.toFixed(4)}, ${spawnLon.toFixed(4)}`);
+    
+    // INSTANT spawn - no delays, no waiting
+    const currentState = vehicle.getState();
+    vehicle.setState({
+      ...currentState,
+      position: spawnPosition,
+      heading: 0, // Facing north (towards target)
+      pitch: 0,
+      roll: 0,
+      velocity: 0,
+      speed: 0
+    });
+    
+    // Move camera to follow airplane instantly
+    scene.camera.setView({
+      destination: spawnPosition,
+      orientation: {
+        heading: 0,
+        pitch: Cesium.Math.toRadians(-20),
+        roll: 0
+      }
+    });
+    
+    // Show the vehicle model
+    if (vehicle.model) {
+      vehicle.model.show = true;
+    }
+    
+    console.log(`✅ Airplane spawned! Fly north towards the target!`);
+    
+    // Show BIG flag at the target location (on the ground)
+    this.flagManager.addFlag(
+      'target',
+      { 
+        latitude: place.position.latitude, 
+        longitude: place.position.longitude, 
+        height: place.position.height || 0 
+      },
+      Cesium.Color.RED.withAlpha(0.8),
+      `🎯 ${place.label}`
+    );
+    
+    console.log(`🎯 Target ahead: ${place.label} - Fly towards the red flag!`);
+  }
+
+  private showAnswerFlags(actualPosition: Position, guessPosition: Position): void {
+    this.flagManager.removeAllFlags();
+    
+    this.flagManager.addFlag(
+      'actual',
+      actualPosition,
+      Cesium.Color.GREEN,
+      'Actual Location'
+    );
+    
+    this.flagManager.addFlag(
+      'guess',
+      guessPosition,
+      Cesium.Color.BLUE,
+      'Your Guess'
+    );
+  }
+
+  private updateBuildModeFlags(): void {
+    if (!this.currentChallenge) return;
+
+    this.flagManager.removeAllFlags();
+
+    this.currentChallenge.places.forEach((place, index) => {
+      // Only show flag if position has been set (not at 0,0,0)
+      if (place.position.latitude !== 0 || place.position.longitude !== 0 || place.position.height !== 0) {
+        const isSelected = place.id === this.buildModeSelectedPlace?.id;
+        const color = isSelected ? Cesium.Color.YELLOW : Cesium.Color.RED;
+        
+        this.flagManager.addFlag(
+          place.id,
+          place.position,
+          color,
+          `${index + 1}. ${place.label}`
+        );
+      }
+    });
+  }
+
+  private createEmptyChallenge(): Challenge {
+    return {
+      id: this.generateId(),
+      name: 'New Challenge',
+      createdAt: Date.now(),
+      places: [],
+      photoModeEnabled: false,
+    };
+  }
+
+  private generateId(): string {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  public getFlagManager(): FlagManager {
+    return this.flagManager;
+  }
+
+  public getTeleporter(): LocationTeleporter {
+    return this.teleporter;
+  }
+}

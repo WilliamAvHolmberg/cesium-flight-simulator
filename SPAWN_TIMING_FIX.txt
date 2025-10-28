@@ -1,0 +1,137 @@
+✅ SPAWN TIMING & DEPTH FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROBLEMS FIXED:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. ❌ Spawns in Gothenburg first, then teleports 5 seconds later
+   FIX: Hide vehicle until challenge location is ready
+   RESULT: Direct spawn at challenge location
+
+2. ❌ Spawns way too deep (inside earth)
+   FIX: Use fixed 1000m altitude instead of place.position.height + 200
+   RESULT: Always spawns at safe altitude
+
+3. ❌ "Ready to Play" screen shows before challenge
+   FIX: Reordered App.tsx to set mode FIRST, then start playing
+   RESULT: Smooth transition to challenge
+
+CHANGES MADE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+App.tsx - handlePlayChallenge():
+  ✓ Made async
+  ✓ Sets mode first (configures vehicle)
+  ✓ Waits 100ms for React to update
+  ✓ THEN starts playing (triggers spawn)
+  ✓ Hides menu AFTER starting
+
+ModeManager.ts - enterGeoGuessPlayMode():
+  ✓ Keeps vehicle.model.show = FALSE initially
+  ✓ Vehicle is hidden until spawn completes
+  ✓ No visible Gothenburg spawn
+
+GeoGuessController.ts - loadCurrentPlace():
+  ✓ Uses fixed 1000m altitude (not place.position.height + 200)
+  ✓ Sets vehicle.model.show = TRUE after spawn
+  ✓ Vehicle appears at challenge location
+  ✓ Flag shows at ground level (place.position.height)
+
+HOW IT WORKS NOW:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+User clicks "Play Challenge":
+  ↓
+1. Set mode to geoguess_play
+   - Vehicle configured
+   - Collision disabled
+   - Vehicle HIDDEN
+  ↓
+2. Wait 100ms for React
+  ↓
+3. controller.startPlaying()
+   - Triggers loadCurrentPlace()
+  ↓
+4. loadCurrentPlace() async:
+   a. Hide menu
+   b. Camera flies to location (1 second)
+   c. Wait for tiles to load
+   d. Spawn vehicle at 1000m
+   e. SHOW vehicle model
+   f. Add flag at ground level
+  ↓
+5. Player sees airplane appear at challenge location
+  ↓
+6. Can fly immediately!
+
+OLD WAY (Broken):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Spawn airplane in Gothenburg (visible)
+2. Show "Ready to Play"
+3. Wait...
+4. Teleport to challenge location (5 seconds later)
+5. User confused
+
+NEW WAY (Fixed):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Hide vehicle
+2. Fly camera to challenge location
+3. Wait for tiles
+4. Spawn vehicle at challenge location
+5. Show vehicle
+6. User sees clean spawn
+
+ALTITUDE FIX:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OLD: place.position.height + 200
+  Problem: If place.position.height is 0 (ground) or negative (underground)
+           Then spawn at 200m which might be underground in mountains!
+
+NEW: Fixed 1000m altitude
+  Result: Always spawns 1000m above sea level
+          Safe altitude to see the area
+          Not too high, not too low
+
+Ground Flag:
+  - Shows at place.position.height (the actual placed location)
+  - Player can see where to look
+  - Flag stays at ground level
+
+CONSOLE OUTPUT:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+When starting challenge:
+
+🎮 Entering GeoGuess Play mode...
+🛡️ Collision detection DISABLED for GeoGuess mode
+✅ GeoGuess Play mode active - Vehicle hidden until spawn
+📷 Moving camera to location: Paris at 48.8566, 2.3522
+📷 Camera arrived at location
+⏳ Waiting for 3D tiles to load...
+✅ Tiles loaded in 1234ms
+✈️ Spawning airplane at 1000m altitude...
+✅ Airplane spawned at location: Paris
+🎯 Target location: Paris - Fly around and find it!
+
+Clean! 🎉
+
+TESTING:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Create a challenge with Paris
+2. Save it
+3. Play it
+4. Expected:
+   ✅ Menu closes
+   ✅ Screen goes black briefly
+   ✅ Camera flies to Paris (you see movement)
+   ✅ Tiles load
+   ✅ Airplane appears at 1000m altitude
+   ✅ Red flag visible at ground level
+   ✅ Can fly immediately
+   ✅ No Gothenburg spawn
+   ✅ No underground spawn
+   ✅ Clean experience!
+
+Perfect! 🚀

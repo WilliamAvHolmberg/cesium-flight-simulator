@@ -1,0 +1,56 @@
+🧪 QUICK TEST GUIDE - GeoGuess Flag Placement
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔧 WHAT WAS FIXED:
+1. ✅ Map clicking now works (uses pickPosition instead of globe.pick)
+2. ✅ Smooth camera transitions (no more jarring jumps)
+3. ✅ Better console feedback
+
+📝 HOW TO TEST:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Step 1: Refresh Browser
+  - Hard refresh (Ctrl+Shift+R or Cmd+Shift+R)
+
+Step 2: Enter Builder Mode
+  - Main Menu → GeoGuess → Create Challenge
+  - Should see builder UI (left sidebar)
+
+Step 3: Add Location
+  - Click "Add" button in left sidebar
+  - Console should show: "✅ Location added! Click on the 3D map..."
+  - A new location appears in the list (selected/highlighted)
+
+Step 4: Place Flag
+  - Click anywhere on the 3D world (buildings, ground, etc.)
+  - Should see console: "📍 Flag placed at: {lat, lon, height}"
+  - A yellow flag cylinder should appear at click location
+
+Step 5: Test Movement
+  - With same location still selected, click different spot
+  - Flag should move to new position
+  - Smooth, no re-rendering
+
+Step 6: Test Selection
+  - Add another location (repeat steps 3-4)
+  - Click first location in list
+  - Camera should smoothly fly to that location
+  - Should see both flags (yellow = selected, red = others)
+
+🎯 EXPECTED BEHAVIOR:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Flags appear where you click
+✅ Smooth camera transitions (1.5s flight)
+✅ No scene reloading/flickering
+✅ Console feedback guides you
+✅ Yellow flag = selected location
+✅ Red flags = other locations
+
+⚠️ TROUBLESHOOTING:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Flag doesn't appear? → Check if location is selected (highlighted in list)
+- Click not working? → Check console for warnings
+- Console shows "No place selected"? → Click "Add" or select from list first
+- Console shows "Could not pick position"? → Click on loaded terrain/buildings
+
+Let me know if it works! 🚀

@@ -152,6 +152,33 @@ export class GameBridge extends TypedEventEmitter<GameEvents> {
   }
 
   public teleportTo(longitude: number, latitude: number, altitude: number, heading: number = 0): void {
+    // In GeoGuess modes, teleport the camera directly
+    if (this.currentMode === 'geoguess_builder' || this.currentMode === 'geoguess_play') {
+      const scene = this.game.getScene();
+      const destination = Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude + 100);
+      
+      scene.camera.flyTo({
+        destination: destination,
+        duration: 1.5,
+        orientation: {
+          heading: Cesium.Math.toRadians(heading),
+          pitch: Cesium.Math.toRadians(-20),
+          roll: 0
+        },
+        easingFunction: Cesium.EasingFunction.QUADRATIC_IN_OUT,
+      });
+      
+      this.emit('locationChanged', {
+        longitude,
+        latitude,
+        altitude
+      });
+      
+      console.log(`🗺️ Camera teleported to: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+      return;
+    }
+    
+    // In flight sim modes, teleport the vehicle
     const vehicle = this.game.getVehicleManager().getActiveVehicle();
     if (vehicle) {
       const newPosition = Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude);
@@ -232,6 +259,10 @@ export class GameBridge extends TypedEventEmitter<GameEvents> {
 
   public getMode(): GameMode {
     return this.currentMode;
+  }
+
+  public getGeoGuessController() {
+    return this.game.getGeoGuessController();
   }
 
   public applyQualityPreset(preset: 'performance' | 'balanced' | 'quality' | 'ultra'): void {

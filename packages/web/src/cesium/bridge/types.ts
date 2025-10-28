@@ -1,7 +1,7 @@
 import * as Cesium from 'cesium';
 import type { CameraType } from '../managers/CameraManager';
 
-export type GameMode = 'play' | 'builder';
+export type GameMode = 'play' | 'builder' | 'geoguess_builder' | 'geoguess_play';
 
 export interface VehicleStateData {
   speed: number;
