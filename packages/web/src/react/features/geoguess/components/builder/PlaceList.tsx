@@ -19,6 +19,8 @@ export function PlaceList() {
     const place = addPlace(`Location ${(challenge?.places.length || 0) + 1}`);
     if (place) {
       selectPlace(place.id);
+      // Give user feedback
+      console.log('✅ Location added! Click on the 3D map to place the flag.');
     }
   };
 

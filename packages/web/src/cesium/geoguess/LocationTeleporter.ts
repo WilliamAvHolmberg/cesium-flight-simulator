@@ -15,24 +15,25 @@ export class LocationTeleporter {
       position.height + 100
     );
 
+    const orientation = {
+      heading: 0,
+      pitch: Cesium.Math.toRadians(-20),
+      roll: 0,
+    };
+
     if (duration === 0) {
+      // Instant teleport
       this.viewer.camera.setView({
         destination: destination,
-        orientation: {
-          heading: 0,
-          pitch: Cesium.Math.toRadians(-20),
-          roll: 0,
-        },
+        orientation: orientation,
       });
     } else {
+      // Smooth camera flight
       this.viewer.camera.flyTo({
         destination: destination,
         duration: duration,
-        orientation: {
-          heading: 0,
-          pitch: Cesium.Math.toRadians(-20),
-          roll: 0,
-        },
+        orientation: orientation,
+        easingFunction: Cesium.EasingFunction.QUADRATIC_IN_OUT,
       });
     }
   }

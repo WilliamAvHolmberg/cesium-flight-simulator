@@ -120,7 +120,8 @@ export class GeoGuessController {
     const place = this.currentChallenge.places.find(p => p.id === placeId);
     if (place) {
       this.buildModeSelectedPlace = place;
-      this.teleporter.teleportTo(place.position);
+      // Smooth camera movement to the location
+      this.teleporter.teleportTo(place.position, 1.5);
       this.updateBuildModeFlags();
     }
   }

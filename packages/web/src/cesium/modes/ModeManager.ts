@@ -160,13 +160,20 @@ export class ModeManager {
     
     this.mapClickHandler.setInputAction((click: any) => {
       const selectedPlace = geoGuessController.getSelectedPlace();
-      if (!selectedPlace) return;
+      if (!selectedPlace) {
+        console.log('⚠️ No place selected, please select a location first');
+        return;
+      }
       
       const ray = scene.camera.getPickRay(click.position);
       if (!ray) return;
       
-      const cartesian = scene.scene.globe.pick(ray, scene.scene);
-      if (!cartesian) return;
+      // Use pickPosition which works with 3D tiles
+      const cartesian = scene.viewer.scene.pickPosition(click.position);
+      if (!cartesian) {
+        console.log('⚠️ Could not pick position at click location');
+        return;
+      }
       
       const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
       const position = {

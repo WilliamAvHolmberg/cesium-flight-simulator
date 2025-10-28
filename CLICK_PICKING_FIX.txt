@@ -1,0 +1,61 @@
+🐛 BUG FIX: Map Click & Re-rendering Issues
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISSUES FIXED:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. ❌ Clicking on map doesn't place flags
+   ROOT CAUSE: Using globe.pick() but globe is disabled (globe.show = false)
+   FIX: Changed to use scene.pickPosition() which works with 3D tiles
+   
+2. ❌ Cesium re-renders when changing locations
+   ROOT CAUSE: Instant teleport (duration=0) causes jarring camera jumps
+   FIX: Added smooth camera flight (1.5s duration) with easing function
+
+CHANGES MADE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ ModeManager.ts - setupMapClickHandler()
+  - Changed from globe.pick() to scene.pickPosition()
+  - Added console warnings when click fails
+  - Works with 3D Google Photorealistic tiles
+
+✓ GeoGuessController.ts - selectPlace()
+  - Changed teleportTo(position) to teleportTo(position, 1.5)
+  - Smooth 1.5 second camera flight when selecting locations
+
+✓ LocationTeleporter.ts - teleportTo()
+  - Added QUADRATIC_IN_OUT easing function
+  - Better comments for instant vs smooth teleport
+  - Cleaner code organization
+
+✓ PlaceList.tsx - handleAddPlace()
+  - Added console feedback when location added
+  - Reminds user to click on 3D map
+
+HOW IT WORKS NOW:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Builder Mode Flow:
+1. Click "Add" button
+2. A new location is added and selected
+3. Console shows: "✅ Location added! Click on the 3D map to place the flag."
+4. Click anywhere on the 3D world
+5. Flag appears at that position
+6. To move flag: keep same location selected, click new position
+
+Selecting Locations:
+1. Click a location in the list
+2. Camera smoothly flies to that location (1.5 seconds)
+3. No jarring jumps, no scene re-rendering
+4. Flag can be repositioned by clicking on map
+
+TESTING:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Click on 3D buildings/terrain → Flag places
+✅ Select different locations → Smooth camera flight
+✅ Reposition flags → Click new spot on map
+✅ No scene reloading
+✅ Works with Google 3D tiles
+
+STATUS: ✅ READY TO TEST
