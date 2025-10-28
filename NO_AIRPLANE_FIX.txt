@@ -1,0 +1,104 @@
+✅ AIRPLANE REMOVED FROM GEOGUESS MODES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PROBLEM SOLVED:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ Airplane rendered in GeoGuess modes
+❌ Everything centered around airplane
+❌ Couldn't move freely
+
+✅ Airplane now hidden in GeoGuess modes
+✅ Free camera from the start
+✅ No vehicle constraints
+
+WHAT CHANGED:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ModeManager.ts - enterGeoGuessBuilderMode()
+  ✓ Hides airplane model (vehicle.model.show = false)
+  ✓ Disables vehicle physics
+  ✓ Positions camera high above Earth (5000km altitude)
+  ✓ Looking down at planet (-90° pitch)
+  ✓ Free camera controls enabled
+  ✓ No vehicle in the way!
+
+ModeManager.ts - enterGeoGuessPlayMode()
+  ✓ Hides airplane model
+  ✓ Disables vehicle physics
+  ✓ Free camera controls enabled
+  ✓ No vehicle visible
+
+ModeManager.ts - exitBuilderMode()
+  ✓ Shows airplane model again (vehicle.model.show = true)
+  ✓ Re-enables physics
+  ✓ Restores follow camera
+  ✓ Back to flight sim mode
+
+HOW IT WORKS NOW:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GEOGUESS BUILDER MODE:
+1. Select "GeoGuess" → "Create Challenge"
+2. Camera starts at 5000km altitude, looking down at Earth
+3. No airplane visible
+4. Use LocationSelector to search for places
+5. Use MiniMap to navigate
+6. Free camera movement (mouse + WASD)
+7. Click "Add" to create locations
+8. Pure freedom!
+
+GEOGUESS PLAY MODE:
+1. Select "GeoGuess" → "Play Challenge"
+2. Select a challenge
+3. Teleports to first location
+4. No airplane visible
+5. Free camera to explore
+6. Make your guess
+7. Next location!
+
+FLIGHT SIM MODE:
+1. Main Menu → "Flight Simulator"
+2. Cinematic sequence plays
+3. Airplane spawns
+4. Follow camera active
+5. Normal flight sim experience
+
+MODE SEPARATION:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Flight Sim:     🛩️ Airplane visible + Follow camera
+Builder Mode:   🏗️ No vehicle + Object placement
+GeoGuess Build: 🗺️ No vehicle + Free camera + Flags
+GeoGuess Play:  🎮 No vehicle + Free camera + Guessing
+
+Each mode is completely independent!
+
+CAMERA START POSITIONS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Flight Sim:      At airplane spawn location
+Builder:         Behind/above vehicle
+GeoGuess Build:  5000km above Earth (lat: 0, lon: 20)
+GeoGuess Play:   At first challenge location
+
+TESTING:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Refresh browser
+2. Main Menu → GeoGuess → Create Challenge
+3. Expected:
+   ✅ Camera high above Earth
+   ✅ No airplane visible
+   ✅ Can see planet
+   ✅ Free to move around
+4. Search for "Paris"
+5. Expected:
+   ✅ Camera flies to Paris
+   ✅ Still no airplane
+   ✅ Can explore freely
+6. Return to Main Menu → Flight Simulator
+7. Expected:
+   ✅ Airplane spawns
+   ✅ Follow camera active
+   ✅ Normal flight experience
+
+Perfect separation! 🎯

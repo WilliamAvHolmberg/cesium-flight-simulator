@@ -90,10 +90,14 @@ export class ModeManager {
     // Disable object placement
     placementController.disable();
     
-    // Re-enable vehicle physics
+    // Re-enable vehicle physics and visibility
     const vehicle = vehicleManager.getActiveVehicle();
     if (vehicle) {
       (vehicle as any).physicsEnabled = true;
+      // Show the vehicle model again
+      if (vehicle.model) {
+        vehicle.model.show = true;
+      }
     }
     
     // Disable Cesium's default camera controls
@@ -102,7 +106,7 @@ export class ModeManager {
     // Re-enable our custom follow camera
     cameraManager.setActiveCamera('follow');
     
-    console.log('✅ Play mode active - follow camera enabled');
+    console.log('✅ Play mode active - follow camera enabled, vehicle visible');
   }
 
   private enterGeoGuessBuilderMode(): void {
@@ -113,41 +117,72 @@ export class ModeManager {
     const cameraManager = this.game.getCameraManager();
     const geoGuessController = this.game.getGeoGuessController();
     
+    // Disable and hide any active vehicle
     const vehicle = vehicleManager.getActiveVehicle();
     if (vehicle) {
       (vehicle as any).physicsEnabled = false;
+      // Hide the vehicle model
+      if (vehicle.model) {
+        vehicle.model.show = false;
+      }
     }
     
+    // Disable our custom cameras
     const activeCamera = cameraManager.getActiveCamera();
     if (activeCamera) {
       activeCamera.deactivate();
     }
     
+    // Position camera for good initial view (high altitude over Earth)
+    const startPosition = Cesium.Cartesian3.fromDegrees(0, 20, 5000000); // High above equator
+    scene.camera.setView({
+      destination: startPosition,
+      orientation: {
+        heading: 0,
+        pitch: Cesium.Math.toRadians(-90), // Looking down
+        roll: 0
+      }
+    });
+    
+    // Enable Cesium's free camera controls
     scene.enableDefaultCameraControls(true);
     
     geoGuessController.startBuilding();
     
     this.setupMapClickHandler();
     
-    console.log('✅ GeoGuess Builder mode active');
+    console.log('✅ GeoGuess Builder mode active - Free camera, no vehicle');
   }
 
   private enterGeoGuessPlayMode(): void {
     console.log('🎮 Entering GeoGuess Play mode...');
     
     const scene = this.game.getScene();
+    const vehicleManager = this.game.getVehicleManager();
     const cameraManager = this.game.getCameraManager();
     
+    // Disable and hide any active vehicle
+    const vehicle = vehicleManager.getActiveVehicle();
+    if (vehicle) {
+      (vehicle as any).physicsEnabled = false;
+      // Hide the vehicle model
+      if (vehicle.model) {
+        vehicle.model.show = false;
+      }
+    }
+    
+    // Disable our custom cameras
     const activeCamera = cameraManager.getActiveCamera();
     if (activeCamera) {
       activeCamera.deactivate();
     }
     
+    // Enable free camera controls
     scene.enableDefaultCameraControls(true);
     
     this.removeMapClickHandler();
     
-    console.log('✅ GeoGuess Play mode active');
+    console.log('✅ GeoGuess Play mode active - Free camera, no vehicle');
   }
 
   private setupMapClickHandler(): void {
