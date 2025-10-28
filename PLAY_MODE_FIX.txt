@@ -1,0 +1,135 @@
+✅ PLAY MODE - FLY THE AIRPLANE!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CHANGES MADE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ModeManager.ts - enterGeoGuessPlayMode()
+  ✓ Re-enables airplane physics
+  ✓ Shows airplane model
+  ✓ Enables follow camera (not free camera)
+  ✓ Player can actually fly!
+
+GeoGuessController.ts - loadCurrentPlace()
+  ✓ Spawns airplane at location (200m above)
+  ✓ Places RED flag at target position
+  ✓ Player can see where they are
+  ✓ Fly around to explore!
+
+main.ts - setupSystems()
+  ✓ Removed altitude limiting
+  ✓ Can fly as high as you want
+  ✓ Full freedom to explore
+
+HOW IT WORKS NOW:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PLAY MODE FLOW:
+
+1. Select challenge → Select from list
+2. Challenge starts
+3. ✈️ AIRPLANE SPAWNS at first location (200m above)
+4. 🚩 RED FLAG visible at target location
+5. Camera follows airplane (follow cam)
+6. Fly around and explore!
+7. Look for landmarks, check surroundings
+8. When ready, open guessing map
+9. Place your guess
+10. See results → Next location!
+
+WHAT YOU CAN DO:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Fly the airplane with normal controls
+✅ Use follow camera to look around
+✅ Fly as high as you want (no altitude limit)
+✅ See the red flag showing where you are
+✅ Explore the area freely
+✅ Open guessing map when ready
+✅ Place your guess on 2D map
+
+MODE COMPARISON:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BUILDER MODE:
+  - Free camera (no airplane)
+  - High altitude start
+  - Click to place flags
+  - Minimap & search available
+  - Build challenges
+
+PLAY MODE:
+  - ✈️ Airplane spawns at location
+  - 🚩 Red flag shows target
+  - Follow camera active
+  - Fly around to explore
+  - Guess on 2D map
+  - Score points!
+
+VISUAL INDICATORS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+During Exploration:
+  🚩 RED FLAG = Target location you're at
+  ✈️ AIRPLANE = You flying around
+
+After Guessing:
+  🟢 GREEN FLAG = Actual location (where you were)
+  🔵 BLUE FLAG = Your guess (where you clicked)
+  📏 Distance shown between them
+
+EXAMPLE GAMEPLAY:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Challenge: "Famous Landmarks"
+
+Location 1: "Mysterious Tower"
+  → Airplane spawns 200m up
+  → See red flag below
+  → Fly around, spot Eiffel Tower!
+  → Open guessing map
+  → Click on Paris, France
+  → Result: 150m away, 950 points! ✅
+
+Location 2: "Island Statue"
+  → Airplane respawns at new location
+  → Red flag below
+  → Fly around, see Statue of Liberty!
+  → Guess New York
+  → Result: 500m away, 800 points! ✅
+
+Location 3: "Ancient Ruins"
+  → Spawn, explore, guess!
+  
+Final Score: 2500 points! 🎉
+
+CONTROLS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Flight Controls:
+  - W/S: Pitch up/down
+  - A/D: Roll left/right
+  - Q/E: Yaw left/right
+  - Shift/Ctrl: Throttle up/down
+  - C: Switch camera view
+
+Guessing:
+  - Click "Open Map" button
+  - Click on world map
+  - Click "Confirm Guess"
+  - See results!
+
+TESTING:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Create a challenge with a recognizable location
+2. Save it
+3. Go back and play it
+4. Expected:
+   ✅ Airplane spawns at location
+   ✅ Red flag visible below
+   ✅ Can fly around freely
+   ✅ Follow camera works
+   ✅ Can see landmarks
+   ✅ Can guess on map
+
+Now you can actually fly and explore! 🚀

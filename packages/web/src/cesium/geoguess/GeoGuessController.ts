@@ -207,14 +207,42 @@ export class GeoGuessController {
     if (!place) return;
 
     this.flagManager.removeAllFlags();
-    this.teleporter.teleportTo(place.position);
     
+    // Spawn airplane at the location
+    const scene = (this.game as any).getScene();
+    const vehicleManager = (this.game as any).getVehicleManager();
+    const vehicle = vehicleManager.getActiveVehicle();
+    
+    if (vehicle) {
+      const spawnPosition = Cesium.Cartesian3.fromDegrees(
+        place.position.longitude,
+        place.position.latitude,
+        place.position.height + 200 // Spawn 200m above location
+      );
+      
+      const currentState = vehicle.getState();
+      vehicle.setState({
+        ...currentState,
+        position: spawnPosition,
+        heading: 0,
+        pitch: 0,
+        roll: 0,
+        velocity: 0,
+        speed: 0
+      });
+      
+      console.log(`✈️ Airplane spawned at location: ${place.label}`);
+    }
+    
+    // Show a BIG flag marker at the target location so player can see it
     this.flagManager.addFlag(
       'target',
       place.position,
       Cesium.Color.RED,
-      place.label
+      `📍 ${place.label}`
     );
+    
+    console.log(`🎯 Target location: ${place.label} - Fly around and find it!`);
   }
 
   private showAnswerFlags(actualPosition: Position, guessPosition: Position): void {

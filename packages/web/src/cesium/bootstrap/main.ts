@@ -46,9 +46,7 @@ export class CesiumVehicleGame {
     this.gameLoop.addUpdatable({
       update: (deltaTime: number) => {
         const modeManager = (this as any).modeManager;
-        if (modeManager?.getCurrentMode() === 'geoguess_play') {
-          this.geoGuessController.enforceAltitudeLimit();
-        }
+        // Removed altitude limiting - players can fly freely in GeoGuess play mode
       }
     });
     

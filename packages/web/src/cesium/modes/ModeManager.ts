@@ -161,28 +161,25 @@ export class ModeManager {
     const vehicleManager = this.game.getVehicleManager();
     const cameraManager = this.game.getCameraManager();
     
-    // Disable and hide any active vehicle
+    // Re-enable and show the vehicle for play mode
     const vehicle = vehicleManager.getActiveVehicle();
     if (vehicle) {
-      (vehicle as any).physicsEnabled = false;
-      // Hide the vehicle model
+      (vehicle as any).physicsEnabled = true;
+      // Show the vehicle model
       if (vehicle.model) {
-        vehicle.model.show = false;
+        vehicle.model.show = true;
       }
     }
     
-    // Disable our custom cameras
-    const activeCamera = cameraManager.getActiveCamera();
-    if (activeCamera) {
-      activeCamera.deactivate();
-    }
+    // Disable Cesium's default camera controls
+    scene.enableDefaultCameraControls(false);
     
-    // Enable free camera controls
-    scene.enableDefaultCameraControls(true);
+    // Enable our custom follow camera so player can fly
+    cameraManager.setActiveCamera('follow');
     
     this.removeMapClickHandler();
     
-    console.log('✅ GeoGuess Play mode active - Free camera, no vehicle');
+    console.log('✅ GeoGuess Play mode active - Airplane enabled, can fly around!');
   }
 
   private setupMapClickHandler(): void {
