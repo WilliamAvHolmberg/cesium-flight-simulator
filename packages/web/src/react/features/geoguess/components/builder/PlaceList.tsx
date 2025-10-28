@@ -18,8 +18,9 @@ export function PlaceList() {
   const handleAddPlace = () => {
     const place = addPlace(`Location ${(challenge?.places.length || 0) + 1}`);
     if (place) {
-      // Don't select or teleport, just add at current position
-      console.log('✅ Location added at current camera position! Click it in the list to select and reposition.');
+      // Auto-select the new place so user can click on map to set position
+      selectPlace(place.id);
+      console.log('✅ Location added! Now click on the 3D map to place the flag.');
     }
   };
 

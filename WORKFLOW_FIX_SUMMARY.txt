@@ -1,0 +1,151 @@
+✅ WORKFLOW & TELEPORT FIXES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ISSUES FIXED:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. ❌ Minimap doesn't work in GeoGuess mode
+   FIX: Updated GameBridge.teleportTo() to handle camera-only teleportation
+   RESULT: Minimap now works! Click to teleport camera
+
+2. ❌ New locations not auto-selected
+   FIX: Restored selectPlace() call after adding location
+   RESULT: Click "Add" → location selected, ready to place flag
+
+3. ❌ Lat/lon auto-populated when adding location
+   FIX: Start with (0,0,0) placeholder position
+   RESULT: No position until user clicks on map
+
+4. ❌ Tried to teleport to locations without positions
+   FIX: Check if position is valid before teleporting
+   RESULT: No teleport attempt for unplaced locations
+
+5. ❌ Flags showing at (0,0,0) before placement
+   FIX: Only render flags with valid positions
+   RESULT: Clean map, flags only appear after placement
+
+CHANGES MADE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ GameBridge.ts - teleportTo()
+  - Detects if in GeoGuess mode
+  - GeoGuess: Teleports camera (flyTo with easing)
+  - Flight Sim: Teleports vehicle (setState)
+  - Works for minimap, location search, etc.
+
+✓ useChallengeBuilder.ts - addPlace()
+  - Creates place with (0,0,0) placeholder
+  - No getCurrentPosition() call
+  - User must click map to set actual position
+
+✓ PlaceList.tsx - handleAddPlace()
+  - Calls selectPlace() after adding
+  - Location auto-selected
+  - Console: "✅ Location added! Now click on the 3D map..."
+
+✓ GeoGuessController.ts - selectPlace()
+  - Checks if position is valid (not 0,0,0)
+  - Only teleports if position exists
+  - Console feedback if no position yet
+
+✓ GeoGuessController.ts - updateBuildModeFlags()
+  - Only renders flags with valid positions
+  - No flags at (0,0,0)
+  - Clean visual state
+
+NEW WORKFLOW:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STEP 1: Navigate to location
+  - Use LocationSelector (search)
+  - Use MiniMap (click to teleport) ← NOW WORKS!
+  - Use manual controls (mouse + WASD)
+
+STEP 2: Add location
+  - Click "Add" button
+  - Location created with no position yet
+  - Location auto-selected
+  - Console: "✅ Location added! Now click on the 3D map..."
+
+STEP 3: Place flag
+  - Click anywhere on 3D map
+  - Flag appears at clicked position
+  - Position saved to location
+  - Done!
+
+STEP 4: Reposition if needed
+  - Click location in list (teleports if has position)
+  - Click new spot on map
+  - Flag moves to new position
+
+STEP 5: Repeat
+  - Search for next place
+  - Add location
+  - Click to place
+  - Continue building challenge!
+
+TELEPORT BEHAVIOR:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Minimap Click:
+  - GeoGuess Mode: ✅ Camera flies to clicked position
+  - Flight Sim: ✅ Vehicle teleports to clicked position
+
+LocationSelector:
+  - GeoGuess Mode: ✅ Camera flies to searched location
+  - Flight Sim: ✅ Vehicle teleports to searched location
+
+Select Location (List):
+  - Has Position: ✅ Camera flies there smoothly
+  - No Position: ⏭️ No teleport, just selects for placement
+
+VISUAL FEEDBACK:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Location in List:
+  - Red text = Not placed yet (no position)
+  - Normal text = Has position
+
+Flags on Map:
+  - Yellow flag = Currently selected location
+  - Red flags = Other locations
+  - No flag = Location not placed yet
+
+Console Messages:
+  - "✅ Location added! Now click on the 3D map..."
+  - "📍 Location selected (no position set yet)..."
+  - "📍 Flag placed at: {lat, lon, height}"
+  - "🗺️ Camera teleported to: {lat, lon}"
+
+EXAMPLE WORKFLOW:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Search "Eiffel Tower" in LocationSelector
+   → Camera flies to Paris ✅
+
+2. Click "Add"
+   → "Location 1" created (no position)
+   → Location auto-selected
+   → Ready to place flag
+
+3. Click on Eiffel Tower in 3D view
+   → Yellow flag appears at clicked spot ✅
+   → Position saved
+
+4. Click minimap on New York area
+   → Camera flies to New York ✅
+
+5. Click "Add"
+   → "Location 2" created
+   → Auto-selected
+
+6. Click on Statue of Liberty
+   → Yellow flag appears there ✅
+
+7. Want to adjust Location 1?
+   → Click "Location 1" in list
+   → Camera flies back to Paris ✅
+   → Click new spot
+   → Flag moves ✅
+
+Perfect workflow! 🎯

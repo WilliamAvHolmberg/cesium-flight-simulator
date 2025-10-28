@@ -13,10 +13,20 @@ export function useChallengeBuilder() {
     const controller = getGeoGuessController();
     if (!controller) return null;
 
-    const teleporter = controller.getTeleporter();
-    const currentPos = teleporter.getCurrentPosition();
+    // Create place with no position initially - user will click on map to set it
+    const place = {
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      position: { latitude: 0, longitude: 0, height: 0 }, // Dummy position, will be replaced
+      label,
+    };
+
+    const challenge = controller.getCurrentChallenge();
+    if (challenge) {
+      challenge.places.push(place);
+      return place;
+    }
     
-    return controller.addPlace(currentPos, label);
+    return null;
   };
 
   const updatePlace = (placeId: string, updates: any) => {

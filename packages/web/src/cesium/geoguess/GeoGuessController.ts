@@ -120,8 +120,15 @@ export class GeoGuessController {
     const place = this.currentChallenge.places.find(p => p.id === placeId);
     if (place) {
       this.buildModeSelectedPlace = place;
-      // Smooth camera movement to the location
-      this.teleporter.teleportTo(place.position, 1.5);
+      
+      // Only teleport if the place has a valid position (not at 0,0,0)
+      if (place.position.latitude !== 0 || place.position.longitude !== 0 || place.position.height !== 0) {
+        // Smooth camera movement to the location
+        this.teleporter.teleportTo(place.position, 1.5);
+      } else {
+        console.log('📍 Location selected (no position set yet). Click on the map to place the flag.');
+      }
+      
       this.updateBuildModeFlags();
     }
   }
@@ -234,15 +241,18 @@ export class GeoGuessController {
     this.flagManager.removeAllFlags();
 
     this.currentChallenge.places.forEach((place, index) => {
-      const isSelected = place.id === this.buildModeSelectedPlace?.id;
-      const color = isSelected ? Cesium.Color.YELLOW : Cesium.Color.RED;
-      
-      this.flagManager.addFlag(
-        place.id,
-        place.position,
-        color,
-        `${index + 1}. ${place.label}`
-      );
+      // Only show flag if position has been set (not at 0,0,0)
+      if (place.position.latitude !== 0 || place.position.longitude !== 0 || place.position.height !== 0) {
+        const isSelected = place.id === this.buildModeSelectedPlace?.id;
+        const color = isSelected ? Cesium.Color.YELLOW : Cesium.Color.RED;
+        
+        this.flagManager.addFlag(
+          place.id,
+          place.position,
+          color,
+          `${index + 1}. ${place.label}`
+        );
+      }
     });
   }
 
