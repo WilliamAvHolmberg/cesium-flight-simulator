@@ -18,15 +18,15 @@ export function PlaceList() {
   const handleAddPlace = () => {
     const place = addPlace(`Location ${(challenge?.places.length || 0) + 1}`);
     if (place) {
-      selectPlace(place.id);
-      // Give user feedback
-      console.log('✅ Location added! Click on the 3D map to place the flag.');
+      // Don't select or teleport, just add at current position
+      console.log('✅ Location added at current camera position! Click it in the list to select and reposition.');
     }
   };
 
   const handleSelectPlace = (placeId: string) => {
     selectPlace(placeId);
     setRefreshKey(k => k + 1);
+    console.log('📍 Location selected. You can now click on the map to reposition the flag.');
   };
 
   const handleDeletePlace = (placeId: string, e: React.MouseEvent) => {
