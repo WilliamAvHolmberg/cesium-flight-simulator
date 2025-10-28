@@ -288,5 +288,18 @@ export class GameBridge extends TypedEventEmitter<GameEvents> {
   public setThrottle(percent: number): void {
     this.game.getInputManager().setThrottlePercent(percent * 100);
   }
+
+  // Voice Control Methods
+  public toggleVoiceControl(): boolean {
+    return this.game.getVoiceControlManager().toggle();
+  }
+
+  public isVoiceControlActive(): boolean {
+    return this.game.getVoiceControlManager().getIsActive();
+  }
+
+  public isVoiceControlSupported(): boolean {
+    return this.game.getVoiceControlManager().isSupported();
+  }
 }
 

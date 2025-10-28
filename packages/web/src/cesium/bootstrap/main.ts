@@ -4,6 +4,7 @@ import { GameLoop } from '../core/GameLoop';
 import { VehicleManager } from '../managers/VehicleManager';
 import { CameraManager } from '../managers/CameraManager';
 import { InputManager } from '../input/InputManager';
+import { VoiceControlManager } from '../input/VoiceControlManager';
 import { ObjectManager } from '../builder/ObjectManager';
 import { PlacementController } from '../builder/PlacementController';
 import { TouchInputManager } from '../input/TouchInputManager';
@@ -14,6 +15,7 @@ export class CesiumVehicleGame {
   private vehicleManager: VehicleManager;
   private cameraManager: CameraManager;
   private inputManager: InputManager;
+  private voiceControlManager: VoiceControlManager;
   private objectManager: ObjectManager;
   private placementController: PlacementController;
   private touchInputManager: TouchInputManager | null = null;
@@ -24,6 +26,7 @@ export class CesiumVehicleGame {
     this.vehicleManager = new VehicleManager(this.scene);
     this.cameraManager = new CameraManager(this.scene.camera);
     this.inputManager = new InputManager();
+    this.voiceControlManager = new VoiceControlManager(this.inputManager);
     this.objectManager = new ObjectManager(this.scene.viewer);
     this.placementController = new PlacementController(this.scene.viewer, this.objectManager);
 
@@ -136,6 +139,10 @@ export class CesiumVehicleGame {
     return this.inputManager;
   }
 
+  public getVoiceControlManager(): VoiceControlManager {
+    return this.voiceControlManager;
+  }
+
   public getScene(): Scene {
     return this.scene;
   }
@@ -154,6 +161,7 @@ export class CesiumVehicleGame {
     this.vehicleManager.destroy();
     this.cameraManager.destroy();
     this.inputManager.destroy();
+    this.voiceControlManager.destroy();
     this.touchInputManager?.destroy();
   }
 }
