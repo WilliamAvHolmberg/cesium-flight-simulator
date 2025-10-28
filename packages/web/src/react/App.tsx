@@ -37,6 +37,7 @@ export function App() {
   };
 
   const handleStartBuilder = () => {
+    setAppMode('flightsim'); // Hide menu by changing app mode
     setMode('geoguess_builder');
     const controller = getGeoGuessController();
     if (controller) {
@@ -56,6 +57,7 @@ export function App() {
       return;
     }
 
+    setAppMode('flightsim'); // Hide menu by changing app mode
     setMode('geoguess_play');
     
     const controller = getGeoGuessController();
