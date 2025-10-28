@@ -170,9 +170,10 @@ export class ModeManager {
       (vehicle as any).collisionEnabled = false;
       console.log('🛡️ Collision detection DISABLED for GeoGuess mode');
       
-      // Show the vehicle model
+      // Keep vehicle HIDDEN until we spawn it at the challenge location
+      // The GeoGuessController will show it after teleporting
       if (vehicle.model) {
-        vehicle.model.show = true;
+        vehicle.model.show = false;
       }
     }
     
@@ -184,7 +185,7 @@ export class ModeManager {
     
     this.removeMapClickHandler();
     
-    console.log('✅ GeoGuess Play mode active - Airplane enabled, NO COLLISION');
+    console.log('✅ GeoGuess Play mode active - Vehicle hidden until spawn');
   }
 
   private setupMapClickHandler(): void {

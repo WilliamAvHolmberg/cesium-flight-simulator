@@ -45,7 +45,7 @@ export function App() {
     }
   };
 
-  const handlePlayChallenge = (challengeId: string) => {
+  const handlePlayChallenge = async (challengeId: string) => {
     const challenge = ChallengeStorage.getChallenge(challengeId);
     if (!challenge) {
       alert('Challenge not found!');
@@ -57,13 +57,20 @@ export function App() {
       return;
     }
 
-    setAppMode('flightsim'); // Hide menu by changing app mode
+    // IMPORTANT: Set mode FIRST so vehicle gets configured
     setMode('geoguess_play');
     
+    // Wait a frame for React to update
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // NOW start playing (this will trigger teleportation)
     const controller = getGeoGuessController();
     if (controller) {
       controller.startPlaying(challenge);
     }
+    
+    // Hide menu AFTER starting
+    setAppMode('flightsim');
   };
 
   const handleBackToMain = () => {

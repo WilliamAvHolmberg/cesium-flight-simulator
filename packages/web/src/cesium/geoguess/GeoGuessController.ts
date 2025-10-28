@@ -216,20 +216,21 @@ export class GeoGuessController {
     
     if (!vehicle) return;
 
-    // STEP 1: Move camera to location first (no vehicle yet)
+    // STEP 1: Calculate proper spawn position (1000m above ground)
+    const spawnHeight = 1000; // High enough to see the area
     const targetPosition = Cesium.Cartesian3.fromDegrees(
       place.position.longitude,
       place.position.latitude,
-      place.position.height + 200
+      spawnHeight
     );
 
-    console.log(`📷 Moving camera to location: ${place.label}...`);
+    console.log(`📷 Moving camera to location: ${place.label} at ${place.position.latitude.toFixed(4)}, ${place.position.longitude.toFixed(4)}`);
     
-    // Fly camera to location
+    // Fly camera to location (fast)
     await new Promise<void>((resolve) => {
       scene.camera.flyTo({
         destination: targetPosition,
-        duration: 2,
+        duration: 1, // Fast camera movement
         orientation: {
           heading: 0,
           pitch: Cesium.Math.toRadians(-20),
@@ -250,12 +251,12 @@ export class GeoGuessController {
       console.warn('⚠️ Tiles did not fully load, but continuing anyway...');
     }
 
-    // STEP 3: Now spawn the vehicle safely
-    console.log('✈️ Spawning airplane...');
+    // STEP 3: Now spawn the vehicle safely at the same position
+    console.log('✈️ Spawning airplane at 1000m altitude...');
     const currentState = vehicle.getState();
     vehicle.setState({
       ...currentState,
-      position: targetPosition,
+      position: targetPosition, // Same as camera
       heading: 0,
       pitch: 0,
       roll: 0,
@@ -263,12 +264,23 @@ export class GeoGuessController {
       speed: 0
     });
     
+    // NOW show the vehicle model
+    if (vehicle.model) {
+      vehicle.model.show = true;
+    }
+    
     console.log(`✅ Airplane spawned at location: ${place.label}`);
     
-    // Show a flag marker at the target location
+    // Show a flag marker at the GROUND location
+    const groundPosition = Cesium.Cartesian3.fromDegrees(
+      place.position.longitude,
+      place.position.latitude,
+      place.position.height || 0 // Use the original flag height or ground level
+    );
+    
     this.flagManager.addFlag(
       'target',
-      place.position,
+      { latitude: place.position.latitude, longitude: place.position.longitude, height: place.position.height || 0 },
       Cesium.Color.RED,
       `📍 ${place.label}`
     );
