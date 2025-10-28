@@ -165,6 +165,11 @@ export class ModeManager {
     const vehicle = vehicleManager.getActiveVehicle();
     if (vehicle) {
       (vehicle as any).physicsEnabled = true;
+      
+      // DISABLE COLLISION DETECTION IN GEOGUESS MODE
+      (vehicle as any).collisionEnabled = false;
+      console.log('🛡️ Collision detection DISABLED for GeoGuess mode');
+      
       // Show the vehicle model
       if (vehicle.model) {
         vehicle.model.show = true;
@@ -179,7 +184,7 @@ export class ModeManager {
     
     this.removeMapClickHandler();
     
-    console.log('✅ GeoGuess Play mode active - Airplane enabled, can fly around!');
+    console.log('✅ GeoGuess Play mode active - Airplane enabled, NO COLLISION');
   }
 
   private setupMapClickHandler(): void {

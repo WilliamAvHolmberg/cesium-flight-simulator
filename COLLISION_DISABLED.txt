@@ -1,0 +1,54 @@
+✅ COLLISION DISABLED IN GEOGUESS MODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WHAT WAS DONE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Aircraft.ts:
+  ✓ Added collisionEnabled flag (public, defaults to true)
+  ✓ Collision check now checks: collisionEnabled && spawnProtectionFrames <= 0
+  ✓ Can be toggled per mode
+
+ModeManager.ts - enterGeoGuessPlayMode():
+  ✓ Sets collisionEnabled = false
+  ✓ Console: "🛡️ Collision detection DISABLED for GeoGuess mode"
+  ✓ Airplane can fly anywhere without crashing
+
+RESULT:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+In GeoGuess Play Mode:
+  ✅ Airplane spawns
+  ✅ NO collision detection
+  ✅ Can fly through anything
+  ✅ Can see what's really happening
+  ✅ No crashes ever
+
+In Flight Sim Mode:
+  ✅ Collision enabled (default)
+  ✅ Normal crash behavior
+  ✅ Can still crash into things
+
+NOW YOU CAN:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ See if tiles are loading properly
+✓ See if airplane spawns correctly
+✓ Fly through buildings/terrain to explore
+✓ Test the tile loading sequence
+✓ Debug any other issues
+✓ No crash messages to confuse things
+
+Console will show:
+  🎮 Entering GeoGuess Play mode...
+  🛡️ Collision detection DISABLED for GeoGuess mode
+  ✅ GeoGuess Play mode active - Airplane enabled, NO COLLISION
+  
+  📷 Moving camera to location: Paris...
+  📷 Camera arrived at location
+  ⏳ Waiting for 3D tiles to load...
+  ✅ Tiles loaded in XXXms
+  ✈️ Spawning airplane...
+  ✅ Airplane spawned at location: Paris
+
+Perfect for debugging! 🔍
