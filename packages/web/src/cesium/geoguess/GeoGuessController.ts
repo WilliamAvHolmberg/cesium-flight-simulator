@@ -184,7 +184,7 @@ export class GeoGuessController {
       return false;
     }
 
-    // Load next place (async but we don't await here)
+    // Load next place (now synchronous - instant!)
     this.loadCurrentPlace();
     return true;
   }
@@ -204,7 +204,7 @@ export class GeoGuessController {
     }
   }
 
-  private async loadCurrentPlace(): Promise<void> {
+  private loadCurrentPlace(): void {
     const place = this.getCurrentPlace();
     if (!place) return;
 
@@ -216,45 +216,48 @@ export class GeoGuessController {
     
     if (!vehicle) return;
 
-    // STEP 1: Calculate proper spawn position (1000m above ground)
-    const spawnHeight = 1000;
-    const targetPosition = Cesium.Cartesian3.fromDegrees(
-      place.position.longitude,
-      place.position.latitude,
+    // Spawn airplane BEHIND the target location so player flies TOWARDS it
+    const distanceBehind = 2000; // 2km behind target
+    const spawnHeight = 1000; // 1km altitude
+    
+    // Calculate position 2km south of target (flying north towards it)
+    const targetLat = place.position.latitude;
+    const targetLon = place.position.longitude;
+    
+    // Roughly 2km south (about 0.018 degrees)
+    const spawnLat = targetLat - 0.018;
+    const spawnLon = targetLon;
+    
+    const spawnPosition = Cesium.Cartesian3.fromDegrees(
+      spawnLon,
+      spawnLat,
       spawnHeight
     );
 
-    console.log(`📷 Teleporting to location: ${place.label} at ${place.position.latitude.toFixed(4)}, ${place.position.longitude.toFixed(4)}`);
+    console.log(`✈️ Spawning airplane 2km south of target: ${place.label}`);
+    console.log(`   Target: ${targetLat.toFixed(4)}, ${targetLon.toFixed(4)}`);
+    console.log(`   Spawn:  ${spawnLat.toFixed(4)}, ${spawnLon.toFixed(4)}`);
     
-    // INSTANT teleport - no camera flight animation
+    // INSTANT spawn - no delays, no waiting
+    const currentState = vehicle.getState();
+    vehicle.setState({
+      ...currentState,
+      position: spawnPosition,
+      heading: 0, // Facing north (towards target)
+      pitch: 0,
+      roll: 0,
+      velocity: 0,
+      speed: 0
+    });
+    
+    // Move camera to follow airplane instantly
     scene.camera.setView({
-      destination: targetPosition,
+      destination: spawnPosition,
       orientation: {
         heading: 0,
         pitch: Cesium.Math.toRadians(-20),
         roll: 0
       }
-    });
-
-    // STEP 2: Quick tile check (shorter timeout for faster transitions)
-    console.log('⏳ Checking tiles...');
-    const tilesLoaded = await scene.waitForTilesToLoad(2000); // Reduced to 2 seconds
-    
-    if (!tilesLoaded) {
-      console.log('⏭️ Tiles still loading, continuing anyway...');
-    }
-
-    // STEP 3: Spawn the vehicle
-    console.log('✈️ Spawning airplane at 1000m altitude...');
-    const currentState = vehicle.getState();
-    vehicle.setState({
-      ...currentState,
-      position: targetPosition,
-      heading: 0,
-      pitch: 0,
-      roll: 0,
-      velocity: 0,
-      speed: 0
     });
     
     // Show the vehicle model
@@ -262,17 +265,21 @@ export class GeoGuessController {
       vehicle.model.show = true;
     }
     
-    console.log(`✅ Airplane spawned at location: ${place.label}`);
+    console.log(`✅ Airplane spawned! Fly north towards the target!`);
     
-    // Show flag at ground level
+    // Show BIG flag at the target location (on the ground)
     this.flagManager.addFlag(
       'target',
-      { latitude: place.position.latitude, longitude: place.position.longitude, height: place.position.height || 0 },
-      Cesium.Color.RED,
-      `📍 ${place.label}`
+      { 
+        latitude: place.position.latitude, 
+        longitude: place.position.longitude, 
+        height: place.position.height || 0 
+      },
+      Cesium.Color.RED.withAlpha(0.8),
+      `🎯 ${place.label}`
     );
     
-    console.log(`🎯 Target location: ${place.label} - Fly around and find it!`);
+    console.log(`🎯 Target ahead: ${place.label} - Fly towards the red flag!`);
   }
 
   private showAnswerFlags(actualPosition: Position, guessPosition: Position): void {

@@ -22,27 +22,29 @@ export class FlagManager {
       id: `flag_${id}`,
       position: cartesian,
       cylinder: {
-        length: 10,
-        topRadius: 0.5,
-        bottomRadius: 0.5,
+        length: 50, // Taller flag (50m)
+        topRadius: 2,
+        bottomRadius: 2,
         material: color,
       },
       point: {
-        pixelSize: 15,
+        pixelSize: 25, // Bigger point
         color: color,
         outlineColor: Cesium.Color.WHITE,
-        outlineWidth: 2,
+        outlineWidth: 3,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
       },
       label: label ? {
         text: label,
-        font: '14pt sans-serif',
+        font: '24pt bold sans-serif', // Bigger, bold text
         fillColor: Cesium.Color.WHITE,
         outlineColor: Cesium.Color.BLACK,
-        outlineWidth: 2,
+        outlineWidth: 3,
         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-        pixelOffset: new Cesium.Cartesian2(0, -20),
+        pixelOffset: new Cesium.Cartesian2(0, -60),
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        scale: 1.2,
       } : undefined,
     });
 
