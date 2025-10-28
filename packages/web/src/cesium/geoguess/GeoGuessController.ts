@@ -231,6 +231,11 @@ export class GeoGuessController {
         speed: 0
       });
       
+      // Enable spawn protection to prevent crash while tiles load
+      if (typeof vehicle.enableSpawnProtection === 'function') {
+        vehicle.enableSpawnProtection();
+      }
+      
       console.log(`✈️ Airplane spawned at location: ${place.label}`);
     }
     
