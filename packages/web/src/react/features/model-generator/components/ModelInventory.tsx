@@ -11,6 +11,37 @@ export function ModelInventory() {
   const [filter, setFilter] = useState<'all' | 'favorites'>('all');
   const [replacingId, setReplacingId] = useState<string | null>(null);
 
+  // Track rotation and scale per model (modelId -> {rotation, scale})
+  const [modelSettings, setModelSettings] = useState<Record<string, { rotation: number; scale: number }>>({});
+
+  // Get settings for a model (with defaults)
+  const getModelSettings = (modelId: string) => {
+    return modelSettings[modelId] || { rotation: 0, scale: 1.0 };
+  };
+
+  // Update rotation for a model
+  const rotateModel = (modelId: string, degrees: number) => {
+    setModelSettings((prev) => {
+      const current = prev[modelId] || { rotation: 0, scale: 1.0 };
+      const newRotation = (current.rotation + degrees) % 360;
+      return {
+        ...prev,
+        [modelId]: { ...current, rotation: newRotation < 0 ? newRotation + 360 : newRotation }
+      };
+    });
+  };
+
+  // Update scale for a model
+  const updateScale = (modelId: string, scale: number) => {
+    setModelSettings((prev) => {
+      const current = prev[modelId] || { rotation: 0, scale: 1.0 };
+      return {
+        ...prev,
+        [modelId]: { ...current, scale }
+      };
+    });
+  };
+
   // Filter models
   const filteredModels = models.filter((model) => {
     const matchesSearch =
@@ -38,8 +69,9 @@ export function ModelInventory() {
   const handleReplaceAirplane = async (model: any) => {
     setReplacingId(model.id);
     try {
-      await replaceVehicleModel(model.modelUrl, 1.0);
-      alert(`✅ Replaced airplane with: ${model.prompt}`);
+      const settings = getModelSettings(model.id);
+      await replaceVehicleModel(model.modelUrl, settings.scale, settings.rotation);
+      alert(`✅ Replaced airplane with: ${model.prompt}\nScale: ${settings.scale}x, Rotation: ${settings.rotation}°`);
     } catch (error) {
       console.error('Failed to replace airplane:', error);
       alert(`❌ Failed to replace airplane: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -166,6 +198,56 @@ export function ModelInventory() {
                   <span>{formatFileSize(model.metadata.fileSize)}</span>
                   <span>•</span>
                   <span>{formatRelativeTime(model.metadata.createdAt)}</span>
+                </div>
+              </div>
+
+              {/* Rotation and Scale Controls */}
+              <div className="glass-panel p-3 bg-white/5 space-y-3">
+                {/* Rotation */}
+                <div>
+                  <label className="text-xs text-white/70 mb-2 block">Rotation</label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => rotateModel(model.id, -90)}
+                      className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded text-xs text-white transition-all"
+                      title="Rotate -90°"
+                    >
+                      ↶ -90°
+                    </button>
+                    <div className="flex-1 text-center">
+                      <span className="text-sm text-white font-medium">
+                        {getModelSettings(model.id).rotation}°
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => rotateModel(model.id, 90)}
+                      className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded text-xs text-white transition-all"
+                      title="Rotate +90°"
+                    >
+                      ↷ +90°
+                    </button>
+                  </div>
+                </div>
+
+                {/* Scale */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs text-white/70">Scale</label>
+                    <span className="text-xs text-white/50">{getModelSettings(model.id).scale.toFixed(1)}x</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="5.0"
+                    step="0.1"
+                    value={getModelSettings(model.id).scale}
+                    onChange={(e) => updateScale(model.id, parseFloat(e.target.value))}
+                    className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-future-accent"
+                  />
+                  <div className="flex justify-between text-xs text-white/30 mt-1">
+                    <span>0.1x</span>
+                    <span>5.0x</span>
+                  </div>
                 </div>
               </div>
 

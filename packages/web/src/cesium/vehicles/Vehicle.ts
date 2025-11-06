@@ -145,7 +145,7 @@ export abstract class Vehicle implements Updatable {
   /**
    * Replace the current model with a new one
    */
-  public async replaceModel(newModelUrl: string, scale?: number): Promise<void> {
+  public async replaceModel(newModelUrl: string, scale?: number, rotationDegrees?: number): Promise<void> {
     if (!this.sceneRef) {
       throw new Error('Scene reference not set');
     }
@@ -155,6 +155,11 @@ export abstract class Vehicle implements Updatable {
       this.sceneRef.primitives.remove(this.primitive);
       this.primitive = null;
       this.isReady = false;
+    }
+
+    // Update model heading offset if rotation specified
+    if (rotationDegrees !== undefined) {
+      this.modelHeadingOffset = Cesium.Math.toRadians(rotationDegrees);
     }
 
     // Load new model
