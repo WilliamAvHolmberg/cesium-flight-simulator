@@ -135,14 +135,8 @@ export function estimateGenerationTime(artStyle: string): string {
   switch (artStyle) {
     case 'sculpture':
       return '2-3 minutes';
-    case 'low-poly':
-      return '1-2 minutes';
-    case 'pbr':
-      return '3-5 minutes';
     case 'realistic':
       return '5-8 minutes';
-    case 'cartoon':
-      return '3-5 minutes';
     default:
       return '3-5 minutes';
   }

@@ -71,10 +71,10 @@ export function ModelInventory() {
     try {
       const settings = getModelSettings(model.id);
       await replaceVehicleModel(model.modelUrl, settings.scale, settings.rotation);
-      alert(`✅ Replaced airplane with: ${model.prompt}\nScale: ${settings.scale}x, Rotation: ${settings.rotation}°`);
+      alert(`Replaced airplane with: ${model.prompt}\nScale: ${settings.scale}x, Rotation: ${settings.rotation}°`);
     } catch (error) {
       console.error('Failed to replace airplane:', error);
-      alert(`❌ Failed to replace airplane: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(`Failed to replace airplane: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setReplacingId(null);
     }
@@ -83,7 +83,6 @@ export function ModelInventory() {
   if (models.length === 0) {
     return (
       <div className="glass-panel p-8 text-center">
-        <div className="text-4xl mb-3">📦</div>
         <h3 className="text-sm font-semibold text-white mb-1">No Models Yet</h3>
         <p className="text-xs text-white/50 mb-4">
           Generated models will appear here
@@ -138,7 +137,7 @@ export function ModelInventory() {
                 : 'bg-white/5 text-white/70 hover:bg-white/10'
             }`}
           >
-            ⭐ Favorites
+            Favorites
           </button>
         </div>
       </div>
@@ -161,19 +160,17 @@ export function ModelInventory() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white/30">
-                    <span className="text-4xl">📦</span>
+                  <div className="w-full h-full flex items-center justify-center text-white/30 text-sm">
+                    <span>No preview</span>
                   </div>
                 )}
 
                 {/* Favorite Button */}
                 <button
                   onClick={() => toggleFavorite(model.id)}
-                  className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-black/50 hover:bg-black/70 rounded-full transition-all"
+                  className="absolute top-2 right-2 px-2 py-1 flex items-center justify-center bg-black/50 hover:bg-black/70 rounded transition-all text-xs text-white/70"
                 >
-                  <span className="text-lg">
-                    {model.isFavorite ? '⭐' : '☆'}
-                  </span>
+                  {model.isFavorite ? '★' : '☆'}
                 </button>
               </div>
 
@@ -258,7 +255,7 @@ export function ModelInventory() {
                   className="flex-1 px-3 py-2 bg-future-accent/20 hover:bg-future-accent/30 rounded text-xs font-medium text-white transition-all"
                   title="Download GLB"
                 >
-                  ⬇️ Download
+                  Download
                 </button>
                 <button
                   onClick={() => handleReplaceAirplane(model)}
@@ -266,14 +263,14 @@ export function ModelInventory() {
                   className="flex-1 px-3 py-2 bg-green-500/20 hover:bg-green-500/30 rounded text-xs font-medium text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Replace airplane with this model"
                 >
-                  {replacingId === model.id ? '⏳ Replacing...' : '✈️ Replace'}
+                  {replacingId === model.id ? 'Replacing...' : 'Replace'}
                 </button>
                 <button
                   onClick={() => handleDelete(model.id)}
                   className="px-3 py-2 bg-red-500/20 hover:bg-red-500/30 rounded text-xs font-medium text-white transition-all"
                   title="Delete model"
                 >
-                  🗑️
+                  Delete
                 </button>
               </div>
 

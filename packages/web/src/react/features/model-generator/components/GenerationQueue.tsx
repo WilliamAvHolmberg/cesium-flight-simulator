@@ -8,20 +8,12 @@ const STAGE_LABELS: Record<GenerationStage, string> = {
   completed: 'Completed',
 };
 
-const STAGE_ICONS: Record<GenerationStage, string> = {
-  preview: '🔨',
-  refining: '🎨',
-  downloading: '⬇️',
-  completed: '✅',
-};
-
 export function GenerationQueue() {
   const { activeTasks, removeTask } = useGeneration();
 
   if (activeTasks.length === 0) {
     return (
       <div className="glass-panel p-8 text-center">
-        <div className="text-4xl mb-3">⏳</div>
         <h3 className="text-sm font-semibold text-white mb-1">No Active Tasks</h3>
         <p className="text-xs text-white/50">
           Generated models will appear here while processing
@@ -45,7 +37,6 @@ export function GenerationQueue() {
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-lg">{STAGE_ICONS[task.status]}</span>
                 <h4 className="text-sm font-medium text-white truncate">
                   {task.prompt}
                 </h4>
@@ -92,7 +83,7 @@ export function GenerationQueue() {
           {/* Error Message */}
           {task.error && (
             <div className="p-2 bg-red-500/20 border border-red-500/30 rounded">
-              <p className="text-xs text-red-200">⚠️ {task.error}</p>
+              <p className="text-xs text-red-200">{task.error}</p>
               <button
                 onClick={() => removeTask(task.id)}
                 className="mt-2 text-xs text-red-300 hover:text-red-200 underline"

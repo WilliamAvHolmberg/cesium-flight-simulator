@@ -2,7 +2,7 @@
 
 export type TaskStatus = 'PENDING' | 'IN_PROGRESS' | 'SUCCEEDED' | 'FAILED' | 'CANCELED';
 
-export type ArtStyle = 'realistic' | 'sculpture' | 'cartoon' | 'low-poly' | 'pbr';
+export type ArtStyle = 'realistic' | 'sculpture';
 
 export type GenerationStage = 'preview' | 'refining' | 'downloading' | 'completed';
 

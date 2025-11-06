@@ -108,7 +108,7 @@ export function ApiKeySetup() {
       {!hasApiKey && (
         <div className="glass-panel p-4 border-l-2 border-future-warning">
           <p className="text-xs text-white/70">
-            ⚠️ You need a MeshyAI API key to generate 3D models. Sign up for free at{' '}
+            You need a MeshyAI API key to generate 3D models. Sign up for free at{' '}
             <a
               href="https://www.meshy.ai"
               target="_blank"

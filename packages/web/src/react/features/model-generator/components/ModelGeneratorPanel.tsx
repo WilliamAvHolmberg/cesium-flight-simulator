@@ -9,9 +9,6 @@ import { ApiKeySetup } from './ApiKeySetup';
 const ART_STYLES: { value: ArtStyle; label: string }[] = [
   { value: 'realistic', label: 'Realistic' },
   { value: 'sculpture', label: 'Sculpture' },
-  { value: 'cartoon', label: 'Cartoon' },
-  { value: 'low-poly', label: 'Low Poly' },
-  { value: 'pbr', label: 'PBR' },
 ];
 
 export function ModelGeneratorPanel() {
@@ -31,6 +28,9 @@ export function ModelGeneratorPanel() {
 
   const handleGenerate = async () => {
     if (!validation.valid || isGenerating) return;
+
+    // Switch to queue tab immediately to show progress
+    setActiveTab('queue');
 
     try {
       const model = await generateModel({
@@ -209,7 +209,7 @@ export function ModelGeneratorPanel() {
         {/* Error Display */}
         {error && (
           <div className="p-3 bg-red-500/20 border border-red-500/30 rounded">
-            <p className="text-xs text-red-200">⚠️ {error}</p>
+            <p className="text-xs text-red-200">{error}</p>
           </div>
         )}
 
@@ -220,7 +220,7 @@ export function ModelGeneratorPanel() {
             disabled={!validation.valid || !hasApiKey || isGenerating}
             className="w-full justify-center"
           >
-            {isGenerating ? 'Generating...' : 'Generate Model 🚀'}
+            {isGenerating ? 'Generating...' : 'Generate Model'}
           </Button>
 
           {validation.valid && hasApiKey && (
