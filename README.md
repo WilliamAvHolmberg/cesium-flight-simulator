@@ -11,6 +11,7 @@ A 3D flight simulator built with Cesium, React, and TypeScript. Fly aircraft or 
 - **Location Teleport** - Jump to famous locations instantly
 - **Quality Presets** - Performance, balanced, quality, and ultra modes
 - **Crash Detection** - Aircraft collision detection with terrain
+- **AI 3D Model Generator** - Generate custom 3D models with MeshyAI (optional)
 
 ## Quick Start
 
@@ -52,6 +53,38 @@ VITE_CESIUM_TOKEN=your_cesium_token_here
 
 Both services are free for development use.
 
+## 3D Model Generation (Optional)
+
+If you want to generate custom 3D models using AI, you can enable the MeshyAI integration:
+
+### Prerequisites
+
+- MeshyAI API key (subscription required - get it from [meshy.ai](https://www.meshy.ai))
+- Node.js proxy server (to handle CORS)
+
+### Setup
+
+1. **Start the proxy server:**
+   ```bash
+   cd packages/api
+   npm install
+   npm run dev
+   ```
+
+2. **Start the web app:**
+   ```bash
+   cd packages/web
+   npm run dev
+   ```
+
+3. **In the app:**
+   - Open the Model Generator overlay
+   - Enter your MeshyAI API key
+   - Start generating 3D models with text prompts
+   - Replace the airplane with your generated models
+
+The generator supports two art styles (realistic and sculpture) and allows you to customize rotation and scale before replacing the vehicle model.
+
 ## Controls
 
 | Key | Action |
@@ -72,19 +105,23 @@ Both services are free for development use.
 - **Tailwind CSS** - Styling
 - **Vite** - Build tool
 - **Mapbox GL** - 2D mini-map
+- **MeshyAI API** - AI-powered 3D model generation (optional)
+- **Express** - Proxy server for CORS handling (optional)
 
 ## Project Structure
 
 ```
-packages/web/src/
-├── cesium/           # Core 3D engine
-│   ├── vehicles/     # Aircraft and car implementations
-│   ├── camera/       # Camera systems
-│   ├── managers/     # Vehicle and camera management
-│   └── bridge/       # React-Cesium communication
-└── react/            # UI layer
-    ├── features/     # UI features (HUD, controls, mini-map)
-    └── hooks/        # React hooks for game state
+packages/
+├── web/src/
+│   ├── cesium/           # Core 3D engine
+│   │   ├── vehicles/     # Aircraft and car implementations
+│   │   ├── camera/       # Camera systems
+│   │   ├── managers/     # Vehicle and camera management
+│   │   └── bridge/       # React-Cesium communication
+│   └── react/            # UI layer
+│       ├── features/     # UI features (HUD, controls, mini-map, model-generator)
+│       └── hooks/        # React hooks for game state
+└── api/                  # Express proxy server for MeshyAI (optional)
 ```
 
 ## Development
@@ -108,4 +145,5 @@ MIT License - see LICENSE file for details
 
 - [Cesium](https://cesium.com/) for the 3D rendering engine
 - [Mapbox](https://www.mapbox.com/) for map tiles and styling
+- [MeshyAI](https://www.meshy.ai/) for AI-powered 3D model generation
 
