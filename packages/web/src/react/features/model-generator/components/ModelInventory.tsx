@@ -2,11 +2,14 @@ import { useState } from 'react';
 import { useGeneration } from '../context/GenerationContext';
 import { formatFileSize, formatRelativeTime } from '../utils/modelUtils';
 import { Button } from '../../../shared/components/Button';
+import { useGameMethod } from '../../../hooks/useGameMethod';
 
 export function ModelInventory() {
   const { models, removeModel, toggleFavorite } = useGeneration();
+  const { replaceVehicleModel } = useGameMethod();
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'favorites'>('all');
+  const [replacingId, setReplacingId] = useState<string | null>(null);
 
   // Filter models
   const filteredModels = models.filter((model) => {
@@ -29,6 +32,19 @@ export function ModelInventory() {
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this model?')) {
       await removeModel(id);
+    }
+  };
+
+  const handleReplaceAirplane = async (model: any) => {
+    setReplacingId(model.id);
+    try {
+      await replaceVehicleModel(model.modelUrl, 1.0);
+      alert(`✅ Replaced airplane with: ${model.prompt}`);
+    } catch (error) {
+      console.error('Failed to replace airplane:', error);
+      alert(`❌ Failed to replace airplane: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setReplacingId(null);
     }
   };
 
@@ -163,11 +179,12 @@ export function ModelInventory() {
                   ⬇️ Download
                 </button>
                 <button
-                  className="flex-1 px-3 py-2 bg-green-500/20 hover:bg-green-500/30 rounded text-xs font-medium text-white transition-all"
-                  title="Place in scene (coming soon)"
-                  disabled
+                  onClick={() => handleReplaceAirplane(model)}
+                  disabled={replacingId === model.id}
+                  className="flex-1 px-3 py-2 bg-green-500/20 hover:bg-green-500/30 rounded text-xs font-medium text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Replace airplane with this model"
                 >
-                  📍 Place
+                  {replacingId === model.id ? '⏳ Replacing...' : '✈️ Replace'}
                 </button>
                 <button
                   onClick={() => handleDelete(model.id)}

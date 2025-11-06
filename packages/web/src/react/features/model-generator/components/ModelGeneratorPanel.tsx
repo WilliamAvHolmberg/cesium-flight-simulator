@@ -10,8 +10,8 @@ const ART_STYLES: { value: ArtStyle; label: string }[] = [
   { value: 'realistic', label: 'Realistic' },
   { value: 'sculpture', label: 'Sculpture' },
   { value: 'cartoon', label: 'Cartoon' },
-  { value: 'lowpoly', label: 'Low Poly' },
-  { value: 'voxel', label: 'Voxel' },
+  { value: 'low-poly', label: 'Low Poly' },
+  { value: 'pbr', label: 'PBR' },
 ];
 
 export function ModelGeneratorPanel() {
@@ -24,6 +24,7 @@ export function ModelGeneratorPanel() {
   const [enablePbr, setEnablePbr] = useState(true);
   const [shouldRemesh, setShouldRemesh] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showApiKeyManage, setShowApiKeyManage] = useState(false);
 
   const validation = validatePrompt(prompt);
   const estimatedTime = estimateGenerationTime(artStyle);
@@ -52,6 +53,21 @@ export function ModelGeneratorPanel() {
     }
   };
 
+  // If showing API key management, show only that
+  if (showApiKeyManage) {
+    return (
+      <div className="space-y-4">
+        <button
+          onClick={() => setShowApiKeyManage(false)}
+          className="text-xs text-white/60 hover:text-white flex items-center gap-1"
+        >
+          ← Back to Generator
+        </button>
+        <ApiKeySetup />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* API Key Setup */}
@@ -65,8 +81,8 @@ export function ModelGeneratorPanel() {
               <span className="text-xs text-white/70">API Key Connected</span>
             </div>
             <button
-              onClick={() => setActiveTab('generator')}
-              className="text-xs text-white/50 hover:text-white/70"
+              onClick={() => setShowApiKeyManage(true)}
+              className="text-xs text-white/50 hover:text-white/70 pointer-events-auto cursor-pointer"
             >
               Manage
             </button>

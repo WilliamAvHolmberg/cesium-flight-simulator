@@ -193,6 +193,19 @@ export class GameBridge extends TypedEventEmitter<GameEvents> {
     }
   }
 
+  /**
+   * Replace the current vehicle's model with a new GLB
+   */
+  public async replaceVehicleModel(modelUrl: string, scale?: number): Promise<void> {
+    const vehicle = this.game.getVehicleManager().getActiveVehicle();
+    if (!vehicle) {
+      throw new Error('No active vehicle');
+    }
+
+    await vehicle.replaceModel(modelUrl, scale);
+    console.log(`✅ Replaced vehicle model: ${modelUrl}`);
+  }
+
   public destroy(): void {
     if (this.updateInterval !== null) {
       clearInterval(this.updateInterval);

@@ -25,6 +25,7 @@ export function useGameMethod() {
     setMode: (mode: 'play' | 'builder') => bridge.setMode(mode),
     getMode: () => bridge.getMode(),
     setThrottle: (percent: number) => bridge.setThrottle(percent),
+    replaceVehicleModel: (modelUrl: string, scale?: number) => bridge.replaceVehicleModel(modelUrl, scale),
   };
 }
 
