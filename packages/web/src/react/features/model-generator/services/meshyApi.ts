@@ -5,7 +5,7 @@ import type {
 } from './types';
 
 export class MeshyAPIService {
-  private baseURL = 'https://api.meshy.ai/v2/text-to-3d';
+  private baseURL = '/api/meshy/text-to-3d';
 
   constructor(private apiKey: string) {}
 
@@ -16,7 +16,7 @@ export class MeshyAPIService {
     const response = await fetch(this.baseURL, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.apiKey}`,
+        'x-api-key': this.apiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -46,7 +46,7 @@ export class MeshyAPIService {
     const response = await fetch(this.baseURL, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.apiKey}`,
+        'x-api-key': this.apiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -73,7 +73,7 @@ export class MeshyAPIService {
   async getTaskStatus(taskId: string): Promise<TaskStatusResponse> {
     const response = await fetch(`${this.baseURL}/${taskId}`, {
       headers: {
-        Authorization: `Bearer ${this.apiKey}`,
+        'x-api-key': this.apiKey,
       },
     });
 
@@ -133,10 +133,12 @@ export class MeshyAPIService {
   }
 
   /**
-   * Download model file
+   * Download model file via proxy (to avoid CORS)
    */
   async downloadModel(url: string): Promise<ArrayBuffer> {
-    const response = await fetch(url);
+    // Use our proxy endpoint to download the model
+    const proxyUrl = `/api/meshy/download?url=${encodeURIComponent(url)}`;
+    const response = await fetch(proxyUrl);
 
     if (!response.ok) {
       throw new Error(`Failed to download model: ${response.status}`);

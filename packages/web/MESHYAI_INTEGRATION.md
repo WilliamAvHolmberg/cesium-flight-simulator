@@ -2,7 +2,9 @@
 
 ## Overview
 
-This feature integrates MeshyAI's Text-to-3D API into the Cesium Flight Simulator, allowing users to generate 3D models on-the-fly using natural language prompts. The integration is fully client-side with no backend required.
+This feature integrates MeshyAI's Text-to-3D API into the Cesium Flight Simulator, allowing users to generate 3D models on-the-fly using natural language prompts.
+
+**Architecture:** Frontend (React) + Lightweight Express proxy server to handle CORS issues.
 
 ## Features
 
@@ -16,6 +18,50 @@ This feature integrates MeshyAI's Text-to-3D API into the Cesium Flight Simulato
 ✅ **Download Models** - Export models as .glb files
 ✅ **Favorites System** - Mark important models
 ✅ **Tags & Search** - Auto-tagging from prompts with full-text search
+
+## Running the Application
+
+The application consists of two servers that must run concurrently:
+
+1. **Express API Server** (port 3001) - Proxies MeshyAI API requests and handles CORS
+2. **Vite Dev Server** (port 5174) - Serves the React frontend
+
+### Start Both Servers
+
+From the root directory:
+
+```bash
+npm run dev
+```
+
+This will start both servers using `concurrently`:
+- API Server: `http://localhost:3001`
+- Web Server: `http://localhost:5174`
+
+### Start Individually
+
+**API Server only:**
+```bash
+npm run dev:api
+# or
+cd packages/api && npm run dev
+```
+
+**Web Server only:**
+```bash
+npm run dev:web
+# or
+cd packages/web && npm run dev
+```
+
+### Why the Proxy Server?
+
+MeshyAI's asset download URLs don't include CORS headers, which blocks direct browser downloads. The Express proxy:
+- Forwards API requests to MeshyAI
+- Downloads GLB files server-side (no CORS)
+- Streams them back to the browser
+
+See `packages/api/README.md` for detailed proxy documentation.
 
 ## Getting Started
 
