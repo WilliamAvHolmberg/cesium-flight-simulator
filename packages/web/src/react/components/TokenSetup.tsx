@@ -13,12 +13,12 @@ export function TokenSetup({ onComplete }: TokenSetupProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!mapboxToken.trim() || !cesiumToken.trim()) {
-      setError('Both tokens are required');
-      return;
-    }
+    // if (!mapboxToken.trim()) {
+    //   setError('Both tokens are required');
+    //   return;
+    // }
 
-    saveTokens(mapboxToken.trim(), cesiumToken.trim());
+    saveTokens(mapboxToken, cesiumToken);
     onComplete();
   };
 

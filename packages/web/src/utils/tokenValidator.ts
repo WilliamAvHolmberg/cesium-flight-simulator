@@ -1,5 +1,14 @@
 const MAPBOX_TOKEN_KEY = 'cesium_mapbox_token';
 const CESIUM_TOKEN_KEY = 'cesium_ion_token';
+const RUN_WITHOUT_TOKENS = 'run_without_tokens';
+
+export function setRunWithoutTokens(value: boolean): void {
+  localStorage.setItem(RUN_WITHOUT_TOKENS, value.toString());
+}
+
+export function getRunWithoutTokens(): boolean {
+  return localStorage.getItem(RUN_WITHOUT_TOKENS) === 'true';
+}
 
 export interface Tokens {
   mapbox: string;
@@ -31,14 +40,19 @@ export function hasValidTokens(): boolean {
   return tokens.mapbox.length > 0 && tokens.cesium.length > 0;
 }
 
-export function saveTokens(mapbox: string, cesium: string): void {
-  localStorage.setItem(MAPBOX_TOKEN_KEY, mapbox);
-  localStorage.setItem(CESIUM_TOKEN_KEY, cesium);
+export function saveTokens(mapbox?: string, cesium?: string): void {
+  if(!mapbox && !cesium) {
+    setRunWithoutTokens(true);
+    return;
+  }
+  if (mapbox) localStorage.setItem(MAPBOX_TOKEN_KEY, mapbox.trim());
+  if (cesium) localStorage.setItem(CESIUM_TOKEN_KEY, cesium.trim());
 }
 
 export function clearTokens(): void {
   localStorage.removeItem(MAPBOX_TOKEN_KEY);
   localStorage.removeItem(CESIUM_TOKEN_KEY);
+  setRunWithoutTokens(false);
 }
 
 
