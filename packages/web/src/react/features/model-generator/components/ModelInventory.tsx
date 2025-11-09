@@ -165,6 +165,13 @@ export function ModelInventory() {
                   </div>
                 )}
 
+                {/* Mode Badge */}
+                {model.mode === 'image-to-3d' && (
+                  <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/70 rounded text-xs text-white/80">
+                    Image-to-3D
+                  </div>
+                )}
+
                 {/* Favorite Button */}
                 <button
                   onClick={() => toggleFavorite(model.id)}
@@ -173,6 +180,18 @@ export function ModelInventory() {
                   {model.isFavorite ? '★' : '☆'}
                 </button>
               </div>
+
+              {/* Source Image for Image-to-3D */}
+              {model.mode === 'image-to-3d' && model.imagePreview && (
+                <div className="flex items-center gap-2 -mt-2">
+                  <img
+                    src={model.imagePreview}
+                    alt="Source"
+                    className="w-12 h-12 rounded bg-black/30 object-cover"
+                  />
+                  <span className="text-xs text-white/50">Source image</span>
+                </div>
+              )}
 
               {/* Model Info */}
               <div>
@@ -190,7 +209,7 @@ export function ModelInventory() {
                   ))}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-white/50">
-                  <span className="capitalize">{model.artStyle}</span>
+                  <span className="capitalize">{model.mode === 'text-to-3d' ? model.artStyle : 'Image-to-3D'}</span>
                   <span>•</span>
                   <span>{formatFileSize(model.metadata.fileSize)}</span>
                   <span>•</span>

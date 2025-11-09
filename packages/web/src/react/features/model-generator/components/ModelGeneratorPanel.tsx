@@ -15,16 +15,46 @@ export function ModelGeneratorPanel() {
   const { hasApiKey, setActiveTab } = useGeneration();
   const { generateModel, isGenerating, error } = useModelGenerator();
 
+  // Mode selection
+  const [mode, setMode] = useState<'text-to-3d' | 'image-to-3d'>('text-to-3d');
+
+  // Text-to-3D state
   const [prompt, setPrompt] = useState('');
   const [negativePrompt, setNegativePrompt] = useState('');
   const [artStyle, setArtStyle] = useState<ArtStyle>('realistic');
-  const [enablePbr, setEnablePbr] = useState(true);
   const [shouldRemesh, setShouldRemesh] = useState(true);
+
+  // Image-to-3D state
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [aiModel, setAiModel] = useState<'latest' | 'meshy-4'>('latest');
+  const [shouldTexture, setShouldTexture] = useState(true);
+
+  // Common state
+  const [enablePbr, setEnablePbr] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showApiKeyManage, setShowApiKeyManage] = useState(false);
 
-  const validation = validatePrompt(prompt);
-  const estimatedTime = estimateGenerationTime(artStyle);
+  const validation = mode === 'text-to-3d' ? validatePrompt(prompt) : { valid: !!imageFile, error: '' };
+  const estimatedTime = mode === 'text-to-3d' ? estimateGenerationTime(artStyle) : '3-5 minutes';
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+    }
+  };
+
+  const handleClearImage = () => {
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImageFile(null);
+    setImagePreview(null);
+  };
 
   const handleGenerate = async () => {
     if (!validation.valid || isGenerating) return;
@@ -33,20 +63,35 @@ export function ModelGeneratorPanel() {
     setActiveTab('queue');
 
     try {
-      const model = await generateModel({
-        prompt,
-        artStyle,
-        negativePrompt: negativePrompt || undefined,
-        enablePbr,
-        shouldRemesh,
-      });
+      if (mode === 'text-to-3d') {
+        const model = await generateModel({
+          mode: 'text-to-3d',
+          prompt,
+          artStyle,
+          negativePrompt: negativePrompt || undefined,
+          enablePbr,
+          shouldRemesh,
+        });
 
-      if (model) {
-        // Switch to inventory tab to show the new model
-        setActiveTab('inventory');
-        // Clear the form
-        setPrompt('');
-        setNegativePrompt('');
+        if (model) {
+          setActiveTab('inventory');
+          setPrompt('');
+          setNegativePrompt('');
+        }
+      } else {
+        // Image-to-3D
+        const model = await generateModel({
+          mode: 'image-to-3d',
+          imageFile: imageFile!,
+          aiModel,
+          shouldTexture,
+          enablePbr,
+        });
+
+        if (model) {
+          setActiveTab('inventory');
+          handleClearImage();
+        }
       }
     } catch (err) {
       console.error('Generation failed:', err);
@@ -97,12 +142,46 @@ export function ModelGeneratorPanel() {
             AI 3D Model Generator
           </h3>
           <p className="text-xs text-white/50">
-            Describe your model and let AI bring it to life
+            {mode === 'text-to-3d' ? 'Describe your model and let AI bring it to life' : 'Upload an image to create a 3D model'}
           </p>
         </div>
 
-        {/* Prompt Input */}
+        {/* Mode Selector */}
         <div>
+          <label className="block text-xs font-medium text-white/70 mb-2">
+            Generation Mode
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setMode('text-to-3d')}
+              disabled={isGenerating}
+              className={`px-4 py-2 rounded text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                mode === 'text-to-3d'
+                  ? 'bg-future-accent text-white'
+                  : 'bg-white/5 text-white/70 hover:bg-white/10'
+              }`}
+            >
+              Text to 3D
+            </button>
+            <button
+              onClick={() => setMode('image-to-3d')}
+              disabled={isGenerating}
+              className={`px-4 py-2 rounded text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                mode === 'image-to-3d'
+                  ? 'bg-future-accent text-white'
+                  : 'bg-white/5 text-white/70 hover:bg-white/10'
+              }`}
+            >
+              Image to 3D
+            </button>
+          </div>
+        </div>
+
+        {/* Text-to-3D Input */}
+        {mode === 'text-to-3d' && (
+          <>
+            {/* Prompt Input */}
+            <div>
           <label className="block text-xs font-medium text-white/70 mb-2">
             Describe your model
           </label>
@@ -205,6 +284,117 @@ export function ModelGeneratorPanel() {
             </div>
           )}
         </div>
+          </>
+        )}
+
+        {/* Image-to-3D Input */}
+        {mode === 'image-to-3d' && (
+          <>
+            {/* Image Upload */}
+            <div>
+              <label className="block text-xs font-medium text-white/70 mb-2">
+                Upload Image
+              </label>
+
+              {!imagePreview ? (
+                <label className="block cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png"
+                    onChange={handleImageSelect}
+                    disabled={!hasApiKey || isGenerating}
+                    className="hidden"
+                  />
+                  <div className="border-2 border-dashed border-white/20 rounded-lg p-8 text-center hover:border-future-accent/50 transition-all">
+                    <div className="text-white/40 mb-2">
+                      <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                    </div>
+                    <p className="text-xs text-white/60 mb-1">Click to upload image</p>
+                    <p className="text-xs text-white/40">JPG, JPEG, PNG (max 10MB)</p>
+                  </div>
+                </label>
+              ) : (
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Upload preview"
+                    className="w-full h-48 object-contain bg-black/30 rounded-lg"
+                  />
+                  <button
+                    onClick={handleClearImage}
+                    disabled={isGenerating}
+                    className="absolute top-2 right-2 bg-red-500/80 hover:bg-red-500 text-white rounded-full p-2 text-xs disabled:opacity-50"
+                  >
+                    Clear
+                  </button>
+                  {imageFile && (
+                    <p className="mt-2 text-xs text-white/60">
+                      {imageFile.name} ({(imageFile.size / 1024 / 1024).toFixed(2)} MB)
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* AI Model Selector */}
+            <div>
+              <label className="block text-xs font-medium text-white/70 mb-2">
+                AI Model
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setAiModel('latest')}
+                  disabled={!hasApiKey || isGenerating}
+                  className={`px-3 py-2 rounded text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                    aiModel === 'latest'
+                      ? 'bg-future-accent text-white'
+                      : 'bg-white/5 text-white/70 hover:bg-white/10'
+                  }`}
+                >
+                  Latest (Meshy-6)
+                </button>
+                <button
+                  onClick={() => setAiModel('meshy-4')}
+                  disabled={!hasApiKey || isGenerating}
+                  className={`px-3 py-2 rounded text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                    aiModel === 'meshy-4'
+                      ? 'bg-future-accent text-white'
+                      : 'bg-white/5 text-white/70 hover:bg-white/10'
+                  }`}
+                >
+                  Meshy-4
+                </button>
+              </div>
+            </div>
+
+            {/* Image-to-3D Options */}
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-xs text-white/70 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={shouldTexture}
+                  onChange={(e) => setShouldTexture(e.target.checked)}
+                  disabled={!hasApiKey || isGenerating}
+                  className="rounded"
+                />
+                <span>Generate textures</span>
+              </label>
+
+              <label className="flex items-center gap-2 text-xs text-white/70 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={enablePbr}
+                  onChange={(e) => setEnablePbr(e.target.checked)}
+                  disabled={!hasApiKey || isGenerating}
+                  className="rounded"
+                />
+                <span>Enable PBR Maps (metallic, roughness, normal)</span>
+              </label>
+            </div>
+          </>
+        )}
 
         {/* Error Display */}
         {error && (

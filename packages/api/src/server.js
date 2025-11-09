@@ -1,21 +1,39 @@
 import express from 'express';
 import cors from 'cors';
+import multer from 'multer';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' })); // Increase limit for base64 images
 
-// MeshyAI API base URL
-const MESHY_API_BASE = 'https://api.meshy.ai/v2/text-to-3d';
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG and PNG are allowed.'));
+    }
+  },
+});
+
+// MeshyAI API base URLs
+const MESHY_TEXT_TO_3D_BASE = 'https://api.meshy.ai/v2/text-to-3d';
+const MESHY_IMAGE_TO_3D_BASE = 'https://api.meshy.ai/v2/image-to-3d';
 
 /**
  * Helper function to forward requests to MeshyAI API
  */
-async function forwardToMeshy(method, path, body, apiKey) {
-  const url = path.startsWith('http') ? path : `${MESHY_API_BASE}${path}`;
+async function forwardToMeshy(method, path, body, apiKey, baseUrl = MESHY_TEXT_TO_3D_BASE) {
+  const url = path.startsWith('http') ? path : `${baseUrl}${path}`;
 
   const options = {
     method,
@@ -81,6 +99,67 @@ app.get('/api/meshy/text-to-3d/:taskId', async (req, res) => {
 });
 
 /**
+ * POST /api/meshy/image-to-3d
+ * Create image-to-3D task (with file upload or image URL)
+ */
+app.post('/api/meshy/image-to-3d', upload.single('image'), async (req, res) => {
+  try {
+    const apiKey = req.headers['x-api-key'];
+
+    if (!apiKey) {
+      return res.status(401).json({ error: 'Missing x-api-key header' });
+    }
+
+    let body = {};
+
+    // Check if a file was uploaded
+    if (req.file) {
+      // Convert file to base64 data URI
+      const base64 = req.file.buffer.toString('base64');
+      const mimeType = req.file.mimetype;
+      body.image_url = `data:${mimeType};base64,${base64}`;
+    } else if (req.body.image_url) {
+      // Use provided image URL
+      body.image_url = req.body.image_url;
+    } else {
+      return res.status(400).json({ error: 'No image file or image_url provided' });
+    }
+
+    // Add other optional parameters
+    if (req.body.ai_model) body.ai_model = req.body.ai_model;
+    if (req.body.should_texture !== undefined) body.should_texture = req.body.should_texture;
+    if (req.body.enable_pbr !== undefined) body.enable_pbr = req.body.enable_pbr;
+
+    const data = await forwardToMeshy('POST', '', body, apiKey, MESHY_IMAGE_TO_3D_BASE);
+    res.json(data);
+  } catch (error) {
+    console.error('Error creating image-to-3D task:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/meshy/image-to-3d/:taskId
+ * Get image-to-3D task status
+ */
+app.get('/api/meshy/image-to-3d/:taskId', async (req, res) => {
+  try {
+    const apiKey = req.headers['x-api-key'];
+
+    if (!apiKey) {
+      return res.status(401).json({ error: 'Missing x-api-key header' });
+    }
+
+    const { taskId } = req.params;
+    const data = await forwardToMeshy('GET', `/${taskId}`, null, apiKey, MESHY_IMAGE_TO_3D_BASE);
+    res.json(data);
+  } catch (error) {
+    console.error('Error getting image-to-3D task status:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * GET /api/meshy/download
  * Proxy download requests to avoid CORS
  */
@@ -126,5 +205,6 @@ app.get('/health', (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 MeshyAI Proxy Server running on http://localhost:${PORT}`);
-  console.log(`📡 Proxying requests to: ${MESHY_API_BASE}`);
+  console.log(`📡 Proxying text-to-3D requests to: ${MESHY_TEXT_TO_3D_BASE}`);
+  console.log(`📡 Proxying image-to-3D requests to: ${MESHY_IMAGE_TO_3D_BASE}`);
 });

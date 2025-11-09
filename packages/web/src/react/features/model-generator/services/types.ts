@@ -14,8 +14,21 @@ export interface PreviewParams {
   enablePbr?: boolean;
 }
 
+export interface ImageToModelParams {
+  imageFile?: File;
+  imageUrl?: string;
+  aiModel?: 'latest' | 'meshy-4';
+  shouldTexture?: boolean;
+  enablePbr?: boolean;
+}
+
 export interface RefineParams extends PreviewParams {
   previewTaskId: string;
+}
+
+export interface ImageRefineParams {
+  previewTaskId: string;
+  enablePbr?: boolean;
 }
 
 export interface TaskStatusResponse {
@@ -47,8 +60,10 @@ export interface TaskStatusResponse {
 
 export interface GenerationTask {
   id: string;
+  mode: 'text-to-3d' | 'image-to-3d';
   prompt: string;
-  artStyle: ArtStyle;
+  imagePreview?: string; // base64 or URL for image mode
+  artStyle?: ArtStyle; // Only for text-to-3d
   status: GenerationStage;
   progress: number;
   previewTaskId?: string;
@@ -61,8 +76,10 @@ export interface GenerationTask {
 
 export interface GeneratedModel {
   id: string;
+  mode: 'text-to-3d' | 'image-to-3d';
   prompt: string;
-  artStyle: ArtStyle;
+  imagePreview?: string; // For image-to-3d mode
+  artStyle?: ArtStyle; // For text-to-3d mode
   thumbnailUrl: string;
   modelUrl: string;
   glbData: ArrayBuffer;
@@ -78,9 +95,17 @@ export interface GeneratedModel {
 }
 
 export interface GenerateModelParams {
-  prompt: string;
+  mode: 'text-to-3d' | 'image-to-3d';
+  // Text-to-3D params
+  prompt?: string;
   artStyle?: ArtStyle;
   negativePrompt?: string;
-  enablePbr?: boolean;
   shouldRemesh?: boolean;
+  // Image-to-3D params
+  imageFile?: File;
+  imageUrl?: string;
+  aiModel?: 'latest' | 'meshy-4';
+  shouldTexture?: boolean;
+  // Common params
+  enablePbr?: boolean;
 }

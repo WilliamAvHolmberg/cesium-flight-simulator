@@ -42,7 +42,7 @@ export function GenerationQueue() {
                 </h4>
               </div>
               <div className="flex items-center gap-2 text-xs text-white/50">
-                <span className="capitalize">{task.artStyle}</span>
+                <span className="capitalize">{task.mode === 'text-to-3d' ? task.artStyle : 'Image-to-3D'}</span>
                 <span>•</span>
                 <span>{new Date(task.createdAt).toLocaleTimeString()}</span>
               </div>
@@ -118,6 +118,18 @@ export function GenerationQueue() {
               }
             )}
           </div>
+
+          {/* Image Preview (for image-to-3D mode) */}
+          {task.mode === 'image-to-3d' && task.imagePreview && (
+            <div className="flex items-center gap-2">
+              <img
+                src={task.imagePreview}
+                alt="Input image"
+                className="w-16 h-16 rounded bg-black/30 object-cover"
+              />
+              <span className="text-xs text-white/50">Source image</span>
+            </div>
+          )}
 
           {/* Thumbnail Preview (if available) */}
           {task.thumbnailUrl && (
