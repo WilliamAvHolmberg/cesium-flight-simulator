@@ -9,6 +9,7 @@ import { isMobileDevice } from './shared/utils/mobileDetect';
 import { useGameMethod } from './hooks/useGameMethod';
 import { HUD } from './features/hud/components/HUD';
 import { CrashScreen } from './features/crash/components/CrashScreen';
+import { GenerationProvider, ModelGeneratorOverlay } from './features/model-generator';
 
 export function App() {
   const { mode } = useGameMode();
@@ -21,23 +22,26 @@ export function App() {
   };
 
   return (
-    <>
+    <GenerationProvider>
       {/* Global UI - always visible */}
       <IntroScreen />
       <DebugPanel />
-      
+
       {/* Mode toggle button (temporary for testing) */}
       <div className="fixed bottom-4 right-4 z-50 pointer-events-auto">
         <ModeToggle />
       </div>
-      
+
       {/* Mode-specific UI */}
       {mode === 'play' && !isMobile && <PlayModeUI />}
       {mode === 'builder' && <BuilderModeUI />}
       <HUD   />
       {isMobile && <ThrottleSlider onChange={handleThrottleChange} />}
       <CrashScreen />
-    </>
+
+      {/* AI Model Generator Overlay */}
+      <ModelGeneratorOverlay />
+    </GenerationProvider>
   );
 }
 

@@ -20,4 +20,12 @@ export default defineConfig({
     define: {
         CESIUM_BASE_URL: JSON.stringify(cesiumBaseUrl),
     },
+    server: {
+        proxy: {
+            '/api': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+            },
+        },
+    },
 })

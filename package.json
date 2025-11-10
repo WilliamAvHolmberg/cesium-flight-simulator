@@ -4,6 +4,9 @@
   "description": "A 3D flight simulator built with Cesium, React, and TypeScript. Fly aircraft or drive a car across real-world terrain with multiple camera modes and a mini-map.",
   "main": "index.js",
   "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "cd packages/api && npm run dev",
+    "dev:web": "cd packages/web && npm run dev",
     "deploy:web": "dotenv -e .env -- ./scripts/deploy-web.sh"
   },
   "author": "",

@@ -142,6 +142,60 @@ export abstract class Vehicle implements Updatable {
     }
   }
 
+  /**
+   * Replace the current model with a new one
+   */
+  public async replaceModel(newModelUrl: string, scale?: number, rotationDegrees?: number): Promise<void> {
+    if (!this.sceneRef) {
+      throw new Error('Scene reference not set');
+    }
+
+    // Remove old model
+    if (this.primitive) {
+      this.sceneRef.primitives.remove(this.primitive);
+      this.primitive = null;
+      this.isReady = false;
+    }
+
+    // Update model heading offset if rotation specified
+    if (rotationDegrees !== undefined) {
+      this.modelHeadingOffset = Cesium.Math.toRadians(rotationDegrees);
+    }
+
+    // Load new model
+    try {
+      Vehicle.scratchHPR.heading = this.hpRoll.heading + this.modelHeadingOffset;
+      Vehicle.scratchHPR.pitch = this.hpRoll.pitch;
+      Vehicle.scratchHPR.roll = this.hpRoll.roll;
+
+      this.primitive = this.sceneRef.primitives.add(
+        await Cesium.Model.fromGltfAsync({
+          url: newModelUrl,
+          scale: scale || this.config.scale || 1.0,
+          modelMatrix: Cesium.Transforms.headingPitchRollToFixedFrame(
+            this.position,
+            Vehicle.scratchHPR,
+            Cesium.Ellipsoid.WGS84
+          )
+        })
+      );
+
+      this.primitive?.readyEvent.addEventListener(() => {
+        this.isReady = true;
+        this.onModelReady();
+      });
+
+      // Update config
+      this.config.modelUrl = newModelUrl;
+      if (scale !== undefined) {
+        this.config.scale = scale;
+      }
+    } catch (error) {
+      console.error(`Failed to replace vehicle model: ${error}`);
+      throw error;
+    }
+  }
+
   public destroy(): void {
     if (this.primitive) {
       if (this.sceneRef) {

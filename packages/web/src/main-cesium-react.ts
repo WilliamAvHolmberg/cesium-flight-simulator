@@ -1,14 +1,14 @@
 import { CesiumVehicleGame } from './cesium/bootstrap/main';
 import { GameBridge } from './cesium/bridge/GameBridge';
 import { mountReactUI } from './react/index';
-import { hasValidTokens } from './utils/tokenValidator';
+import { getRunWithoutTokens, hasValidTokens } from './utils/tokenValidator';
 import { mountTokenSetup } from './react/tokenSetup.tsx';
 import './cesium.css';
 
 console.log('🎮 Modular Cesium Vehicle Game with React UI is starting...');
 
 async function initializeGame() {
-    if (!hasValidTokens()) {
+    if (!getRunWithoutTokens() && !hasValidTokens()) {
         console.log('⚠️ Missing API tokens - showing setup UI...');
         mountTokenSetup(() => {
             console.log('✅ Tokens configured - reloading...');
