@@ -1,19 +1,18 @@
 import * as Cesium from 'cesium';
 import { Vehicle, VehicleConfig } from '../Vehicle';
 import { CarPhysics, PhysicsConfig, PhysicsInput } from './CarPhysics';
-import { TerrainClamping } from './TerrainClamping';
+import { SmartTerrainClamping } from '../../terrain/SmartTerrainClamping';
+import { SmartCollisionDetector } from '../../collision/SmartCollisionDetector';
 
 export class Car extends Vehicle {
   private physics: CarPhysics;
-  private terrainClamping: TerrainClamping;
+  private smartTerrainClamping: SmartTerrainClamping | null = null;
+  private collisionDetector: SmartCollisionDetector | null = null;
   private speedVector: Cesium.Cartesian3 = new Cesium.Cartesian3();
   private roverMode: boolean = true;
   private scene: Cesium.Scene | null = null;
 
   private collisionDetectionEnabled: boolean = false;
-  private readonly PROBE_DISTANCE = 1.0;
-  private readonly BOUNCE_DISTANCE = 0.3;
-  private readonly HEIGHT_THRESHOLD = 1.0;
 
   private currentVehicleHeading: number = 0;
   private currentVehiclePitch: number = 0;
@@ -49,7 +48,7 @@ export class Car extends Vehicle {
     };
 
     this.physics = new CarPhysics(physicsConfig);
-    this.terrainClamping = new TerrainClamping(0);
+    // Smart terrain clamping and collision detector initialized in initialize()
     this.currentVehicleHeading = this.hpRoll.heading;
     this.currentVehiclePitch = this.hpRoll.pitch;
     this.currentVehicleRoll = this.hpRoll.roll;
@@ -57,6 +56,10 @@ export class Car extends Vehicle {
 
   public async initialize(scene: Cesium.Scene): Promise<void> {
     this.scene = scene;
+    // Initialize smart terrain clamping (uses cached heights instead of per-frame raycasts)
+    this.smartTerrainClamping = new SmartTerrainClamping(scene, 0);
+    // Initialize smart collision detector (altitude/velocity-based throttling)
+    this.collisionDetector = new SmartCollisionDetector(scene);
     await super.initialize(scene);
   }
 
@@ -72,22 +75,11 @@ export class Car extends Vehicle {
   public update(deltaTime: number): void {
     if (!this.isReady || !this.physicsEnabled) return;
 
-    const physicsResult = this.physics.update(
-      deltaTime,
-      this.input,
-      this.scene
-        ? {
-            scene: this.scene,
-            position: this.position,
-            heading: this.currentVehicleHeading,
-            exclude: this.primitive ? [this.primitive] : [],
-            enabled: this.collisionDetectionEnabled,
-            probeDistance: this.PROBE_DISTANCE,
-            bounceDistance: this.BOUNCE_DISTANCE,
-            heightThreshold: this.HEIGHT_THRESHOLD
-          }
-        : undefined
-    );
+    // Tick collision detector frame counter
+    this.collisionDetector?.tick();
+
+    // Update physics WITHOUT collision context (we handle collision separately now)
+    const physicsResult = this.physics.update(deltaTime, this.input);
 
     this.velocity = physicsResult.velocity;
     this.speed = physicsResult.speed;
@@ -105,11 +97,11 @@ export class Car extends Vehicle {
     this.hpRoll.roll = this.currentVehicleRoll;
 
     const signedStep = this.velocity * 0.01;
-    
+
     Car.scratchCarHPR.heading = this.currentVehicleHeading;
     Car.scratchCarHPR.pitch = this.currentVehiclePitch;
     Car.scratchCarHPR.roll = this.currentVehicleRoll;
-    
+
     const movementMatrix = Cesium.Transforms.headingPitchRollToFixedFrame(
       this.position,
       Car.scratchCarHPR,
@@ -117,7 +109,7 @@ export class Car extends Vehicle {
       undefined,
       Car.scratchTransform
     );
-    
+
     this.speedVector = Cesium.Cartesian3.multiplyByScalar(
       Cesium.Cartesian3.UNIT_X,
       signedStep,
@@ -130,26 +122,40 @@ export class Car extends Vehicle {
       this.position
     );
 
-    if (this.scene && typeof physicsResult.bounce === 'number' && physicsResult.bounce !== 0) {
-      Cesium.Transforms.eastNorthUpToFixedFrame(this.position, undefined, Car.scratchTransform);
-      Car.scratchLocalForward.x = Math.cos(this.currentVehicleHeading);
-      Car.scratchLocalForward.y = -Math.sin(this.currentVehicleHeading);
-      Car.scratchLocalForward.z = 0;
-      
-      const worldForward = Cesium.Matrix4.multiplyByPointAsVector(
-        Car.scratchTransform,
-        Car.scratchLocalForward,
-        Car.scratchWorldForward
+    // Smart collision detection (velocity-based throttling - only checks when moving)
+    if (this.collisionDetectionEnabled && this.collisionDetector) {
+      const exclude = this.primitive ? [this.primitive] : [];
+      const collisionResult = this.collisionDetector.checkCarCollision(
+        this.position,
+        this.currentVehicleHeading,
+        this.velocity,
+        exclude
       );
-      Cesium.Cartesian3.normalize(worldForward, worldForward);
-      const bounceVector = Cesium.Cartesian3.multiplyByScalar(
-        worldForward, 
-        physicsResult.bounce, 
-        Car.scratchBounceVector
-      );
-      this.position = Cesium.Cartesian3.add(this.position, bounceVector, this.position);
+
+      if (collisionResult.collision && collisionResult.bounce) {
+        // Apply bounce
+        this.physics.reset();
+        Cesium.Transforms.eastNorthUpToFixedFrame(this.position, undefined, Car.scratchTransform);
+        Car.scratchLocalForward.x = Math.cos(this.currentVehicleHeading);
+        Car.scratchLocalForward.y = -Math.sin(this.currentVehicleHeading);
+        Car.scratchLocalForward.z = 0;
+
+        const worldForward = Cesium.Matrix4.multiplyByPointAsVector(
+          Car.scratchTransform,
+          Car.scratchLocalForward,
+          Car.scratchWorldForward
+        );
+        Cesium.Cartesian3.normalize(worldForward, worldForward);
+        const bounceVector = Cesium.Cartesian3.multiplyByScalar(
+          worldForward,
+          collisionResult.bounce,
+          Car.scratchBounceVector
+        );
+        this.position = Cesium.Cartesian3.add(this.position, bounceVector, this.position);
+      }
     }
 
+    // Smart ground clamping (uses cached heights, only precise check every 15 frames)
     if (this.roverMode) {
       this.clampToGround();
     }
@@ -158,8 +164,12 @@ export class Car extends Vehicle {
   }
 
   private clampToGround(): void {
-    if (this.scene && this.primitive) {
-      this.position = this.terrainClamping.clampToGround(this.position, this.scene, [this.primitive]);
+    if (this.scene && this.primitive && this.smartTerrainClamping) {
+      this.position = this.smartTerrainClamping.clampToGround(
+        this.position,
+        this.scene,
+        [this.primitive]
+      );
     }
   }
 

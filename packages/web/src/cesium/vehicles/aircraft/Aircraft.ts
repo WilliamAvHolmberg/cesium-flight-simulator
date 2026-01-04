@@ -1,12 +1,14 @@
 import * as Cesium from 'cesium';
 import { Vehicle, VehicleConfig } from '../Vehicle';
 import { AircraftPhysics, AircraftInput } from './AircraftPhysics';
+import { SmartCollisionDetector } from '../../collision/SmartCollisionDetector';
 
 interface AircraftConfig extends VehicleConfig {
 }
 
 export class Aircraft extends Vehicle {
   private physics: AircraftPhysics;
+  private collisionDetector: SmartCollisionDetector | null = null;
   private input: AircraftInput = {
     throttle: false,
     brake: false,
@@ -17,7 +19,6 @@ export class Aircraft extends Vehicle {
     rollLeft: false,
     rollRight: false
   };
-  private framesSinceCollisionCheck: number = 0;
   private crashed: boolean = false;
 
   private static readonly scratchTransform = new Cesium.Matrix4();
@@ -47,6 +48,18 @@ export class Aircraft extends Vehicle {
       pitchRate: Cesium.Math.toRadians(60),
       maxPitch: Cesium.Math.toRadians(60)
     }, this.hpRoll.heading);
+  }
+
+  public async initialize(scene: Cesium.Scene): Promise<void> {
+    // Initialize smart collision detector (altitude-based throttling)
+    this.collisionDetector = new SmartCollisionDetector(scene, {
+      lowAltitudeThreshold: 300,
+      lowAltitudeCheckInterval: 6,
+      highAltitudeCheckInterval: 30,
+      collisionBuffer: 2.0,
+      probeDistance: 5.0
+    });
+    await super.initialize(scene);
   }
 
   protected onModelReady(): void {
@@ -106,55 +119,24 @@ export class Aircraft extends Vehicle {
     this.velocity = result.speed;
     this.speed = Math.abs(result.speed);
 
-    this.framesSinceCollisionCheck++;
-    if (this.framesSinceCollisionCheck >= 8) {
-      this.framesSinceCollisionCheck = 0;
-      this.performCollisionCheck();
+    // Smart collision detection (altitude-based throttling)
+    // High altitude: checks every 30 frames (~2/sec)
+    // Low altitude: checks every 6 frames (~10/sec)
+    if (this.collisionDetector) {
+      this.collisionDetector.tick();
+      const exclude = this.primitive ? [this.primitive] : [];
+      const collisionResult = this.collisionDetector.checkAircraftCollision(
+        this.position,
+        this.hpRoll.heading,
+        exclude
+      );
+
+      if (collisionResult.collision) {
+        this.crash();
+      }
     }
 
     this.updateModelMatrix();
-  }
-
-  private performCollisionCheck(): void {
-    if (!this.primitive || !this.sceneRef) return;
-
-    const currentHeight = Cesium.Cartographic.fromCartesian(this.position).height;
-    const ground = this.sceneRef.clampToHeight(this.position, [this.primitive]);
-    if (ground) {
-      const groundHeight = Cesium.Cartographic.fromCartesian(ground).height;
-      if (currentHeight <= groundHeight + 0.5) {
-        this.crash();
-        return;
-      }
-    }
-
-    Cesium.Transforms.eastNorthUpToFixedFrame(this.position, undefined, Aircraft.scratchTransform);
-    Aircraft.scratchLocalForward.x = Math.cos(this.hpRoll.heading);
-    Aircraft.scratchLocalForward.y = -Math.sin(this.hpRoll.heading);
-    Aircraft.scratchLocalForward.z = 0;
-    
-    const worldForward = Cesium.Matrix4.multiplyByPointAsVector(
-      Aircraft.scratchTransform, 
-      Aircraft.scratchLocalForward, 
-      Aircraft.scratchWorldForwardCollision
-    );
-    Cesium.Cartesian3.normalize(worldForward, worldForward);
-
-    const probeDistance = 2.0;
-    Cesium.Cartesian3.multiplyByScalar(worldForward, probeDistance, Aircraft.scratchScaled);
-    const probe = Cesium.Cartesian3.add(
-      this.position,
-      Aircraft.scratchScaled,
-      Aircraft.scratchProbe
-    );
-    const ahead = this.sceneRef.clampToHeight(probe, [this.primitive]);
-    if (ahead) {
-      const aheadHeight = Cesium.Cartographic.fromCartesian(ahead).height;
-      const myHeight = Cesium.Cartographic.fromCartesian(this.position).height;
-      if (aheadHeight > myHeight + 0.5) {
-        this.crash();
-      }
-    }
   }
 
   private crash(): void {
