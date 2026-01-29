@@ -12,9 +12,9 @@ export interface VehiclePosition {
 export function useVehiclePosition() {
   const vehicleState = useGameEvent('vehicleStateChanged');
   const [position, setPosition] = useState<VehiclePosition>({
-    longitude: 11.9746,
-    latitude: 57.7089,
-    altitude: 200,
+    longitude: Number(import.meta.env.VITE_LONGITUDE) || 11.9746,
+    latitude: Number(import.meta.env.VITE_LATITUDE) || 57.7089,
+    altitude: Number(import.meta.env.VITE_ALTITUDE) || 200,
     heading: 0,
   });
 

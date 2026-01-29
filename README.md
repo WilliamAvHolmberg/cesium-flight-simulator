@@ -52,6 +52,28 @@ VITE_CESIUM_TOKEN=your_cesium_token_here
 
 Both services are free for development use.
 
+### Docker
+
+You can build and run the project in a Docker container:
+
+```bash
+# Build the Docker image (from project root)
+docker build -t cesium-flight-simulator .
+```
+
+Then run the container with your API tokens:
+```bash
+# Create a .env file from the example. You must edit it to add your tokens.
+copy .env.example .env
+
+# Run the container (exposes port 5173 by default)
+docker run -p 5173:5173 --env-file .env cesium-flight-simulator
+```
+
+Then open http://localhost:5173 in your browser.
+
+You will still need to provide your Mapbox and Cesium API tokens on first launch or via a `.env` file as described above.
+
 ## Controls
 
 | Key | Action |

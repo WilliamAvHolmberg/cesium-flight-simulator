@@ -7,9 +7,11 @@ import { Updatable } from '../core/GameLoop';
 import { InputManager } from '../input/InputManager';
 
 const DEFAULT_SPAWN_LOCATION = {
-  lng: 11.9746,
-  lat: 57.7089
+  lng: Number(import.meta.env.VITE_LONGITUDE) || 11.9746,
+  lat: Number(import.meta.env.VITE_LATITUDE) || 57.7089
 };
+
+const DEFAULT_ALTITUDE = Number(import.meta.env.VITE_ALTITUDE) || 200;
 
 export class VehicleManager implements Updatable {
   private vehicles: Map<string, Vehicle> = new Map();
@@ -144,7 +146,7 @@ export class VehicleManager implements Updatable {
     const spawnPosition = position || Cesium.Cartesian3.fromDegrees(
       DEFAULT_SPAWN_LOCATION.lng,
       DEFAULT_SPAWN_LOCATION.lat,
-      100
+      Math.max(100, DEFAULT_ALTITUDE)
     );
     
     const car = new Car(id, {
@@ -164,7 +166,7 @@ export class VehicleManager implements Updatable {
     const spawnPosition = position || Cesium.Cartesian3.fromDegrees(
       DEFAULT_SPAWN_LOCATION.lng,
       DEFAULT_SPAWN_LOCATION.lat,
-      200
+      DEFAULT_ALTITUDE
     );
     
     const aircraft = new Aircraft(id, {
@@ -203,7 +205,7 @@ export class VehicleManager implements Updatable {
     const originalSpawn = Cesium.Cartesian3.fromDegrees(
       DEFAULT_SPAWN_LOCATION.lng,
       DEFAULT_SPAWN_LOCATION.lat,
-      isAircraft ? 200 : 100
+      isAircraft ? DEFAULT_ALTITUDE : Math.max(100, DEFAULT_ALTITUDE)
     );
     const heading = 0;
 

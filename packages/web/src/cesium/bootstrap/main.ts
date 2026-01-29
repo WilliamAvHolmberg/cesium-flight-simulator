@@ -93,7 +93,10 @@ export class CesiumVehicleGame {
   }
 
   public async startCinematicSequence(): Promise<void> {
-    const spawnPosition = Cesium.Cartesian3.fromDegrees(11.9746, 57.7089, 200);
+    const lng = Number(import.meta.env.VITE_LONGITUDE) || 11.9746;
+    const lat = Number(import.meta.env.VITE_LATITUDE) || 57.7089;
+    const alt = Number(import.meta.env.VITE_ALTITUDE) || 200;
+    const spawnPosition = Cesium.Cartesian3.fromDegrees(lng, lat, alt);
     
     console.log('🎬 Starting cinematic sequence...');
     
